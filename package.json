@@ -1,0 +1,26 @@
+{
+  "name": "event_people",
+  "version": "0.0.1",
+  "description": "Tool to simplify the communication of event based services.",
+  "main": "main.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "yarn test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pin-people/event_people_node.git"
+  },
+  "keywords": [
+    "event",
+    "services"
+  ],
+  "author": "Pin People",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/pin-people/event_people_node/issues"
+  },
+  "homepage": "https://github.com/pin-people/event_people_node#readme"
+}
