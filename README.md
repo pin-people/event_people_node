@@ -102,17 +102,18 @@ Given you want to consume a single event inside your project you can use the `ev
 
 ```typescript
 import { Config, Event, Listener } from "eventPeople";
+import { Base } from "eventPeople.listeners";
 
 // 3 words event names will be replaced by its 4 word wildcard
 // counterpart: 'payment.payments.pay.all'
 const event_name = 'payment.payments.pay';
 
-await Listener.on(event_name: String, callback: (event: Event) => void) {
+await Listener.on(event_name: String, callback: (event: Event, context: Base) => void) {
   console.log("");
   console.log(`  - Received the "${event.name}" message from ${event.origin}:`);
   console.log(`     Message: ${event.body}`);
   console.log("");
-  success();
+  context.success();
 end
 
 Config.close_connection();
@@ -122,6 +123,7 @@ You can also receive all available messages using a loop:
 
 ```typescript
 import { Config, Event, Listener } from "eventPeople";
+import { Base } from "eventPeople.listeners";
 
 const event_name = 'payment.payments.pay.all';
 const has_events = true;
@@ -129,13 +131,13 @@ const has_events = true;
 while (has_events) {
   has_events = false
 
-  await Listener.on(event_name: String, callback: (event: Event) => void) {
+  await Listener.on(event_name: String, callback: (event: Event, context: Base) => void) {
     has_events = true
     console.log("");
     console.log(`  - Received the "${event.name}" message from ${event.origin}:`);
     console.log(`     Message: ${event.body}`);
     console.log("");
-    Listener.success();
+    context.success();
   }
 }
 
@@ -151,9 +153,9 @@ If your project needs to handle lots of events you can extend `eventPeople.Liste
 import { Event, Listeners } from "eventPeople";
 
 class CustomEventListener extends Listeners.Base {
-  this.bind('resource.custom.pay', this.pay);
-  this.bind('resource.custom.receive', this.receive);
-  this.bind('resource.custom.private.service', this.private_channel);
+  this.bindEvent('resource.custom.pay', this.pay);
+  this.bindEvent('resource.custom.receive', this.receive);
+  this.bindEvent('resource.custom.private.service', this.privateChannel);
 
   pay(event: Event): void {
     console.log(`Paid #{event.body['amount']} for #{event.body['name']} ~> #{event.name}`);
@@ -172,7 +174,7 @@ class CustomEventListener extends Listeners.Base {
     this.success();
   }
 
-  private_channel(event: Event): void {
+  privateChannel(event: Event): void {
     console.log(`[consumer] Got a private message: "${event.body['message']}" ~> ${event.name}`);
 
     this.success();
@@ -189,9 +191,9 @@ If you have the need to create a deamon to consume messages on background you ca
 import { Daemon, Event, Listeners } from "eventPeople";
 
 class CustomEventListener extends Listeners.Base {
-  this.bind('resource.custom.pay', this.pay);
-  this.bind('resource.custom.receive', this.receive);
-  this.bind('resource.custom.private.service', this.private_channel);
+  this.bindEvent('resource.custom.pay', this.pay);
+  this.bindEvent('resource.custom.receive', this.receive);
+  this.bindEvent('resource.custom.private.service', this.privateChannel);
 
   pay(event: Event): void {
     console.log(`Paid ${event.body.amount} for ${event.body.name} ~> ${event.name}`);
