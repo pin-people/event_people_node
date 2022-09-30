@@ -108,13 +108,15 @@ import { Base } from "eventPeople.listeners";
 // counterpart: 'payment.payments.pay.all'
 const event_name = 'payment.payments.pay';
 
-await Listener.on(event_name: String, callback: (event: Event, context: Base) => void) {
-  console.log("");
-  console.log(`  - Received the "${event.name}" message from ${event.origin}:`);
-  console.log(`     Message: ${event.body}`);
-  console.log("");
-  context.success();
-end
+await Listener.on(event_name, (event: Event, context: Base) => {
+    console.log("");
+    console.log(
+        `  - Received the "${event.name}" message from ${event.origin}:`
+    );
+    console.log(`     Message: ${event.body}`);
+    console.log("");
+    context.success();
+});
 
 Config.close_connection();
 ```
@@ -126,19 +128,21 @@ import { Config, Event, Listener } from "eventPeople";
 import { Base } from "eventPeople.listeners";
 
 const event_name = 'payment.payments.pay.all';
-const has_events = true;
+let has_events = true;
 
 while (has_events) {
   has_events = false
 
-  await Listener.on(event_name: String, callback: (event: Event, context: Base) => void) {
-    has_events = true
-    console.log("");
-    console.log(`  - Received the "${event.name}" message from ${event.origin}:`);
-    console.log(`     Message: ${event.body}`);
-    console.log("");
-    context.success();
-  }
+  await Listener.on("SOME_EVENT", (event: Event, context: Base) => {
+      has_events = true;
+      console.log("");
+      console.log(
+          `  - Received the "${event.name}" message from ${event.origin}:`
+      );
+      console.log(`     Message: ${event.body}`);
+      console.log("");
+      context.success();
+  });
 }
 
 Config.close_connection();
