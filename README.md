@@ -64,7 +64,7 @@ There are 3 main interfaces to use `EventPeople` on your project:
 
 - Calling `eventPeople.Emitter.trigger(event: Event)` inside your project;
 - Calling `eventPeople.Listener.on(event_name: String)` inside your project;
-- Or extending `eventPeople.Listeners.Base` and use it as a daemon.
+- Or extending `eventPeople.BaseListeners` and use it as a daemon.
 
 ### Using the Emitter
 You can emit events on your project passing an `eventPeople.Event` instance to the `eventPeople.Emitter.trigger` method. Doing this other services that are subscribed to these events will receive it.
@@ -151,12 +151,12 @@ Config.close_connection();
 
 #### Multiple events routing
 
-If your project needs to handle lots of events you can extend `eventPeople.Listeners::Base` class to bind how many events you need to instance methods, so whenever an event is received the method will be called automatically.
+If your project needs to handle lots of events you can extend `eventPeople.BaseListeners` class to bind how many events you need to instance methods, so whenever an event is received the method will be called automatically.
 
 ```typescript
-import { Event, Listeners } from "eventPeople";
+import { Event, BaseListeners } from "eventPeople";
 
-class CustomEventListener extends Listeners.Base {
+class CustomEventListener extends BaseListeners {
   this.bindEvent('resource.custom.pay', this.pay);
   this.bindEvent('resource.custom.receive', this.receive);
   this.bindEvent('resource.custom.private.service', this.privateChannel);
@@ -192,9 +192,9 @@ end
 If you have the need to create a deamon to consume messages on background you can use the `eventPeople.Daemon.start` method to do so with ease. Just remember to define or import all the event bindings before starting the daemon.
 
 ```typescript
-import { Daemon, Event, Listeners } from "eventPeople";
+import { Daemon, Event, BaseListeners } from "eventPeople";
 
-class CustomEventListener extends Listeners.Base {
+class CustomEventListener extends BaseListeners {
   this.bindEvent('resource.custom.pay', this.pay);
   this.bindEvent('resource.custom.receive', this.receive);
   this.bindEvent('resource.custom.private.service', this.privateChannel);
