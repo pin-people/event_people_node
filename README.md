@@ -8,7 +8,7 @@ The main idea is to provide a tool that can emit or consume events based on its 
 
 - **resource:** Defines which resource this event is related like a `user`, a `product`, `company` or anything that you want;
 - **origin:** Defines the name of the system which emitted the event;
-- **action:** What action is made on the resource like `create`, `delete`, `update`, etc. PS: *It is recommended to use the Simple Present tense for actions*;
+- **action:** What action is made on the resource like `create`, `delete`, `update`, etc. PS: _It is recommended to use the Simple Present tense for actions_;
 - **destination (Optional):** This word is optional and if not provided EventPeople will add a `.all` to the end of the event name. It defines which service should consume the event being emitted, so if it is defined and there is a service whith the given name only this service will receive it. It is very helpful when you need to re-emit some events. Also if it is `.all` all services will receive it.
 
 As of today EventPeople uses RabbitMQ as its datasource, but there are plans to add support for other Brokers in the future.
@@ -34,12 +34,13 @@ Or to install and add it as a dependency in your project:
     $ npm i --save 'event_people'
 
 And set env vars:
+
 ```bash
 export RABBIT_URL = 'amqp://guest:guest@localhost:5672'
 export RABBIT_EVENT_PEOPLE_APP_NAME = 'service_name'
 export RABBIT_EVENT_PEOPLE_VHOST = 'event_people'
 export RABBIT_EVENT_PEOPLE_TOPIC_NAME = 'event_people'
-````
+```
 
 ## Usage
 
@@ -53,7 +54,7 @@ It has 2 attributes `name` and `payload`:
 - **payload:** It is the body of the massage, it should be a Hash object for simplicity and flexibility.
 
 ```typescript
-import { Event } from "eventPeople";
+import { Event } from 'eventPeople';
 
 const event_name = 'user.users.create';
 const body = { id: 42, name: 'John Doe', age: 35 };
@@ -67,10 +68,11 @@ There are 3 main interfaces to use `EventPeople` on your project:
 - Or extending `eventPeople.BaseListeners` and use it as a daemon.
 
 ### Using the Emitter
+
 You can emit events on your project passing an `eventPeople.Event` instance to the `eventPeople.Emitter.trigger` method. Doing this other services that are subscribed to these events will receive it.
 
 ```typescript
-import { Config, Emitter, Event } from "eventPeople";
+import { Config, Emitter, Event } from 'eventPeople';
 
 const event_name = 'receipt.payments.pay.users';
 const body = { amount: 350.76 };
@@ -81,6 +83,7 @@ Emitter.trigger(event);
 // Don't forget to close the connection!!!
 Config.close_connection();
 ```
+
 [See more details](https://github.com/pin-people/event_people_node/blob/master/examples/emitter.rb)
 
 ### Listeners
@@ -101,21 +104,19 @@ Other important aspect of event consumming is the result of the processing we pr
 Given you want to consume a single event inside your project you can use the `eventPeople.Listener.on` method. It consumes a single event, given there are events available to be consumed with the given name pattern.
 
 ```typescript
-import { Config, Event, Listener } from "eventPeople";
-import { Base } from "eventPeople.listeners";
+import { Config, Event, Listener } from 'eventPeople';
+import { Base } from 'eventPeople.listeners';
 
 // 3 words event names will be replaced by its 4 word wildcard
 // counterpart: 'payment.payments.pay.all'
 const event_name = 'payment.payments.pay';
 
 await Listener.on(event_name, (event: Event, context: Base) => {
-    console.log("");
-    console.log(
-        `  - Received the "${event.name}" message from ${event.origin}:`
-    );
-    console.log(`     Message: ${event.body}`);
-    console.log("");
-    context.success();
+	console.log('');
+	console.log(`  - Received the "${event.name}" message from ${event.origin}:`);
+	console.log(`     Message: ${event.body}`);
+	console.log('');
+	context.success();
 });
 
 Config.close_connection();
@@ -124,29 +125,30 @@ Config.close_connection();
 You can also receive all available messages using a loop:
 
 ```typescript
-import { Config, Event, Listener } from "eventPeople";
-import { Base } from "eventPeople.listeners";
+import { Config, Event, Listener } from 'eventPeople';
+import { Base } from 'eventPeople.listeners';
 
 const event_name = 'payment.payments.pay.all';
 let has_events = true;
 
 while (has_events) {
-  has_events = false
+	has_events = false;
 
-  await Listener.on("SOME_EVENT", (event: Event, context: Base) => {
-      has_events = true;
-      console.log("");
-      console.log(
-          `  - Received the "${event.name}" message from ${event.origin}:`
-      );
-      console.log(`     Message: ${event.body}`);
-      console.log("");
-      context.success();
-  });
+	await Listener.on('SOME_EVENT', (event: Event, context: Base) => {
+		has_events = true;
+		console.log('');
+		console.log(
+			`  - Received the "${event.name}" message from ${event.origin}:`,
+		);
+		console.log(`     Message: ${event.body}`);
+		console.log('');
+		context.success();
+	});
 }
 
 Config.close_connection();
 ```
+
 [See more details](https://github.com/pin-people/event_people_node/blob/master/examples/listener.rb)
 
 #### Multiple events routing
@@ -183,8 +185,9 @@ class CustomEventListener extends BaseListeners {
 
     this.success();
   }
-end
+}
 ```
+
 [See more details](https://github.com/pin-people/event_people_node/blob/master/examples/daemon.rb)
 
 #### Creating a Daemon
@@ -228,6 +231,7 @@ console.log('****************** Daemon Ready ******************');
 
 Daemon.start()
 ```
+
 [See more details](https://github.com/pin-people/event_people_node/blob/master/examples/daemon.rb)
 
 ## Development
