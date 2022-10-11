@@ -1,7 +1,7 @@
 import { Channel } from 'amqplib';
 
 export class Topic {
-	constructor(private channel: Channel, topic: string) {}
+	constructor(private readonly channel: Channel, readonly topic: string) {}
 
 	getTopic() {}
 
