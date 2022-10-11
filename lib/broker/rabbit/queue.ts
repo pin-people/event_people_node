@@ -6,7 +6,10 @@ import { Config } from '../../config';
 
 export class Queue {
 	private config = Config;
-	constructor(private channel: Channel, private topic: Topic) {}
+	constructor(
+		private readonly channel: Channel,
+		private readonly topic: Topic,
+	) {}
 
 	/**
 	 * Makes a subscription to receive events for a certain routingKey

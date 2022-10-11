@@ -13,8 +13,8 @@ export type DeliveryInfo = {
 
 export class BaseListener implements Context {
 	constructor(
-		private channel: BaseChannel,
-		private deliveryInfo: DeliveryInfo,
+		private readonly channel: BaseChannel,
+		private readonly deliveryInfo: DeliveryInfo,
 	) {}
 
 	callback() {}

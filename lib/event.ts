@@ -14,7 +14,7 @@ export class Event {
 	constructor(
 		private name: string,
 		private body: Record<string, any>,
-		private schemaVersion = 1.0,
+		private readonly schemaVersion = 1.0,
 	) {}
 
 	payload() {
