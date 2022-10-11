@@ -1,4 +1,4 @@
-import { Listener } from '../lib/listener';
+import { Listener } from '../lib/';
 
 /**
  * with rabbit mq running, and ready to publish for exchange => RABBIT_EVENT_PEOPLE_TOPIC_NAME

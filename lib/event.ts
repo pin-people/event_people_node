@@ -33,7 +33,6 @@ export class Event {
 	}
 
 	private buildPayload() {
-		//nao faz o menor sentido
 		this.headers = this.body['headers'];
 		this.body = this.body['body'];
 	}

@@ -16,7 +16,10 @@ export class Queue {
 	 *
 	 */
 
-	async subscribe(routingKey: string, callback: Function) {
+	async subscribe(
+		routingKey: string,
+		callback: Function,
+	): Promise<ConsumeMessage> {
 		let baseName: string;
 		const baseNameArr = routingKey.split('.');
 		baseName = baseNameArr.slice(0, 2).join('.');
@@ -40,7 +43,6 @@ export class Queue {
 	) {
 		const eventName = deliveryInfo.routingKey;
 		const event = new Event(eventName, payload);
-		// func(event, context);
 	}
 
 	private queueOptions() {
@@ -50,7 +52,7 @@ export class Queue {
 	/**
 	 * Returns the full queue name
 	 * @param {string}  routingKey  - queue path string
-	 * @returns{string}
+	 * @returns {string}
 	 */
 	private queueName(routingKey: string) {
 		return `${this.config.APP_NAME.toLocaleLowerCase()}-#${routingKey.toLocaleLowerCase()}`;

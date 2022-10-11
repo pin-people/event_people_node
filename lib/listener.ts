@@ -3,7 +3,7 @@ import { MissingAttributeError } from './utils/errors';
 
 export class Listener {
 	public static on(eventName: string, callback: Function) {
-		if (eventName.length <= 0) throw new MissingAttributeError('eventName');
+		if (eventName.length <= 0) throw new MissingAttributeError('Event name');
 		Config.broker.consume(eventName, callback);
 	}
 

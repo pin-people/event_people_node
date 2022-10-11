@@ -5,7 +5,7 @@ export class Daemon {
 	constructor() {}
 
 	start() {
-		// this.config.broker.getConnection();
+		this.config.broker.getConnection();
 	}
 
 	stop() {
