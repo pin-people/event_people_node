@@ -3,15 +3,15 @@ import { Event } from './event';
 import { MissingAttributeError } from './utils/errors';
 
 export class Emitter {
-	trigger(events: Event[]) {
+	public static trigger(events: Event[]) {
 		events.forEach((event, index) => {
-			if (!event.hasBody())
+			if (!event.getBody())
 				throw new MissingAttributeError(`Event body on position ${index}`);
 
-			if (!event.hasName())
+			if (!event.getName())
 				throw new MissingAttributeError(`Event name on position ${index}`);
-		});
 
-		Config.broker.produce(events);
+			Config.broker.produce(event);
+		});
 	}
 }

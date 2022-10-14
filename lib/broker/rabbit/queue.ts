@@ -18,7 +18,6 @@ export class Queue {
 	 * @returns {Promise<ConsumeMessage>}
 	 *
 	 */
-
 	async subscribe(
 		routingKey: string,
 		callback: Function,
@@ -32,7 +31,7 @@ export class Queue {
 
 		return new Promise<ConsumeMessage>(async (resolve, reject) => {
 			await this.channel.consume(name, (event) => {
-				console.log(JSON.parse(String(event?.content)));
+				callback(event);
 				resolve(event);
 			});
 		});
