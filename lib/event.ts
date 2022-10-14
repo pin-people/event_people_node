@@ -13,7 +13,7 @@ export class Event {
 	private headers: EventHeaders;
 	constructor(
 		private name: string,
-		private body: Record<string, any>,
+		private readonly body: Record<string, any>,
 		private readonly schemaVersion = 1.0,
 	) {}
 
@@ -24,17 +24,12 @@ export class Event {
 		};
 	}
 
-	hasBody() {
-		return this.body !== undefined;
+	getBody() {
+		return this.body;
 	}
 
-	hasName() {
-		return this.name !== undefined;
-	}
-
-	private buildPayload() {
-		this.headers = this.body['headers'];
-		this.body = this.body['body'];
+	getName() {
+		return this.name;
 	}
 
 	private generateHeaders() {
