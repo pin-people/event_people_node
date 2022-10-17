@@ -1,8 +1,8 @@
 import { Channel, ConsumeMessage } from 'amqplib';
 import { Event } from '../../event';
-import { DeliveryInfo } from '../../listeners/base-listener';
 import { Topic } from './topic';
 import { Config } from '../../config';
+import { Context } from '@lib/context';
 
 export class Queue {
 	private config = Config;
@@ -20,31 +20,23 @@ export class Queue {
 	 */
 	async subscribe(
 		routingKey: string,
-		callback: Function,
+		callback: (event: Event, context?: Context) => void,
 	): Promise<ConsumeMessage> {
-		let baseName: string;
 		const baseNameArr = routingKey.split('.');
-		baseName = baseNameArr.slice(0, 2).join('.');
+		const baseName = baseNameArr.slice(0, 2).join('.');
 		const name = this.queueName(`${baseName}.all`);
 		this.channel.assertQueue(name);
 		this.channel.bindQueue(name, Config.TOPIC_NAME, routingKey);
 
-		return new Promise<ConsumeMessage>(async (resolve, reject) => {
+		return new Promise<ConsumeMessage>(async (resolve) => {
 			await this.channel.consume(name, (event) => {
-				callback(event);
+				const eventContent: Record<string, any> = JSON.parse(
+					String(event.content),
+				);
+				callback(new Event(name, eventContent));
 				resolve(event);
 			});
 		});
-	}
-
-	private callback(
-		deliveryInfo: DeliveryInfo,
-		properties: any,
-		payload: Record<string, any>,
-		func: Function,
-	) {
-		const eventName = deliveryInfo.routingKey;
-		const event = new Event(eventName, payload);
 	}
 
 	private queueOptions() {

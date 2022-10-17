@@ -26,6 +26,4 @@ export class Config {
 	public static getBrocker() {
 		return Config.broker;
 	}
-
-	public getfullURL() {}
 }

@@ -5,9 +5,13 @@ import { Channel } from 'amqplib';
 export class Topic {
 	constructor(private readonly channel: Channel, readonly topic: string) {}
 
-	getTopic() {}
+	getTopic() {
+		return this.topic;
+	}
 
-	getChannel() {}
+	getChannel() {
+		return this.channel;
+	}
 
 	produce(event: Event) {
 		this.channel.publish(
@@ -19,6 +23,4 @@ export class Topic {
 			},
 		);
 	}
-
-	topicOptions() {}
 }

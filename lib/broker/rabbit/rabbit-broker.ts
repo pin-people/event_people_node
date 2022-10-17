@@ -1,3 +1,4 @@
+import { Context } from '@lib/context';
 import { connect, Channel, Connection } from 'amqplib';
 
 import { Config } from '../../config';
@@ -31,7 +32,10 @@ export class RabbitBroker implements BaseBroker {
 		return this.channel;
 	}
 
-	public async consume(eventName: string, callback: Function): Promise<void> {
+	public async consume(
+		eventName: string,
+		callback: (event: Event, context?: Context) => void,
+	): Promise<void> {
 		this.queue.subscribe(eventName, callback);
 	}
 

@@ -21,7 +21,6 @@ export class BaseListener implements Context {
 
 	success() {
 		this.channel.ack(this.deliveryInfo.deliveryTag, false);
-		this.channel.ack(this.deliveryInfo.deliveryTag, false);
 	}
 
 	fail() {
