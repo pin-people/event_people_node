@@ -1,4 +1,3 @@
-import { ConsumeMessage } from 'amqplib';
 import { Config, Emitter, Event, Listener } from '../lib/';
 
 /**
@@ -7,9 +6,9 @@ import { Config, Emitter, Event, Listener } from '../lib/';
 (async () => {
 	await new Config().init();
 	const eventName = 'message.*.schedule';
-	Listener.on(eventName, (event: ConsumeMessage) => {
-		console.log('consume event');
-		console.log(JSON.parse(String(event.content)));
+	Listener.on(eventName, (event: Event) => {
+		console.log('consume event', event);
+		console.log(event.payload());
 	});
 
 	const events: Event[] = [
