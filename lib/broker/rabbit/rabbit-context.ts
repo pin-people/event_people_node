@@ -1,18 +1,44 @@
+import { DeliveryInfo } from '@lib/listeners';
 import { Channel } from 'amqplib';
 import { Context } from '../../context';
+import { Message } from 'amqplib/properties';
 
 export class RabbitContext implements Context {
 	constructor(
 		private readonly channel: Channel,
-		private readonly delivery_info: string,
+		private readonly deliveryInfo?: DeliveryInfo,
 	) {}
-	success(): void {
-		console.log('to implement rabbit success');
+	public success(eventMessage: Message): void {
+		console.log('rabbit success', {
+			...eventMessage,
+			deliveryInfo: this.deliveryInfo,
+		});
+		this.channel.ack({
+			...eventMessage,
+			fields: {
+				...eventMessage.fields,
+				deliveryTag: +this.deliveryInfo.deliveryTag,
+			},
+		});
 	}
-	fail(): void {
-		console.log('to implement rabbit fail');
+	public fail(eventMessage: Message): void {
+		this.channel.nack({
+			...eventMessage,
+			fields: {
+				...eventMessage.fields,
+				deliveryTag: +this.deliveryInfo.deliveryTag,
+			},
+		});
+		console.log('rabbit nack');
 	}
-	reject(): void {
-		console.log('to implement rabbit reject');
+	public reject(eventMessage: Message): void {
+		this.channel.reject({
+			...eventMessage,
+			fields: {
+				...eventMessage.fields,
+				deliveryTag: +this.deliveryInfo.deliveryTag,
+			},
+		});
+		console.log('rabbit reject');
 	}
 }

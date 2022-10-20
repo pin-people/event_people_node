@@ -1,5 +1,5 @@
 export interface Context {
-	success(): void;
-	fail(): void;
-	reject(): void;
+	success(eventMessage?: any): void;
+	fail(eventMessage?: any): void;
+	reject(eventMessage?: any): void;
 }

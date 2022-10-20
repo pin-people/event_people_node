@@ -8,7 +8,7 @@ export interface BaseBroker {
 	getConnection(): Promise<Connection>;
 	consume(
 		eventName: string,
-		callback: (event: Event, context?: Context) => void,
+		callback: (event: Event, context: Context) => void,
 	): void;
 	produce(event: Event): void;
 	closeConnection(): void;

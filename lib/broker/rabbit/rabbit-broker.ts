@@ -34,7 +34,7 @@ export class RabbitBroker implements BaseBroker {
 
 	public async consume(
 		eventName: string,
-		callback: (event: Event, context?: Context) => void,
+		callback: (event: Event, context: Context) => void,
 	): Promise<void> {
 		this.queue.subscribe(eventName, callback);
 	}
