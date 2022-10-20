@@ -4,11 +4,18 @@ import { ListenersManager } from './listeners';
 export class Daemon {
 	static config = Config;
 
-	public static async start(): Promise<void> {
+	/**
+	 * Starts the global listener Manager and BindSignals
+	 * @returns void
+	 */
+	public static start(): void {
 		ListenersManager.bindAllListeners();
 		Daemon.bindSignals();
 	}
-
+	/**
+	 * Start the system interuptions management processes
+	 * @returns  void
+	 */
 	public static bindSignals(): void {
 		setInterval(() => {
 			console.log(`
@@ -29,10 +36,14 @@ export class Daemon {
 
 		process.on('SIGINT', () => {
 			console.log('stopped due to CTRL+C');
-			Daemon.stop();
+			process.exit();
 		});
 	}
 
+	/**
+	 * Look for message broker connection and call his closeConnection
+	 * @returns void
+	 */
 	public static stop(): void {
 		if (Daemon.config.broker.connection) Daemon.config.broker.closeConnection();
 	}

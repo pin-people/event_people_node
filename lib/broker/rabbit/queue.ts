@@ -1,4 +1,4 @@
-import { Channel, ConsumeMessage, MessageProperties } from 'amqplib';
+import { Channel, ConsumeMessage, Message } from 'amqplib';
 import { Event } from '../../event';
 import { DeliveryInfo } from '../../listeners/base-listener';
 import { Topic } from './topic';
@@ -23,27 +23,25 @@ export class Queue {
 	async subscribe(
 		routingKey: string,
 		callback: (event: Event, context: Context) => void,
-	): Promise<ConsumeMessage> {
+	): Promise<Message> {
 		const baseNameArr = routingKey.split('.');
 		const baseName = baseNameArr.slice(0, 2).join('.');
 		const name = this.queueName(`${baseName}.all`);
 		this.channel.assertQueue(name);
 		this.channel.bindQueue(name, Config.TOPIC_NAME, routingKey);
 
-		return new Promise<ConsumeMessage>(async (resolve) => {
-			await this.channel.consume(name, (event: ConsumeMessage) => {
+		return new Promise<Message>(async (resolve) => {
+			await this.channel.consume(name, (message: ConsumeMessage) => {
 				const eventPayload: Record<string, any> = JSON.parse(
-					String(event.content),
+					String(message.content),
 				);
 				const deliveryInfo: DeliveryInfo = {
-					deliveryTag: String(event.fields.deliveryTag),
-					routingKey: event.fields.routingKey,
+					deliveryTag: String(message.fields.deliveryTag),
+					routingKey: message.fields.routingKey,
 				};
 
-				const properties = event.properties;
-
-				this.callback(deliveryInfo, properties, eventPayload, callback);
-				resolve(event);
+				this.callback(deliveryInfo, eventPayload, message as Message, callback);
+				resolve(message);
 			});
 		});
 	}
@@ -51,7 +49,6 @@ export class Queue {
 	/**
 	 * Callback to create new rabbit context to handle recieved message
 	 * @param {string} deliveryInfo - info about recived queue message
-	 * @param {MessageProperties} properties - additional info about recieved message
 	 * @param {Record<string, any>}  payload - actually the body message
 	 * @param {Function} method - next callback to execute anything, like call context (ack, nack...whatever)
 	 * @returns {void}
@@ -59,18 +56,14 @@ export class Queue {
 	 */
 	private callback(
 		deliveryInfo: DeliveryInfo,
-		properties: MessageProperties,
 		payload: Record<string, any>,
+		message: Message,
 		method: (event: Event, context: Context) => void,
 	) {
 		const eventName = deliveryInfo.routingKey;
 		const event = new Event(eventName, payload);
-		const context = new RabbitContext(this.channel, deliveryInfo);
+		const context = new RabbitContext(this.channel, message);
 		method(event, context);
-	}
-
-	private queueOptions() {
-		return { durable: true };
 	}
 
 	/**
