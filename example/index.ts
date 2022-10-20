@@ -1,14 +1,13 @@
+import { Context } from '../lib/context';
 import { Config, Emitter, Event, Listener } from '../lib/';
 
-/**
- * with rabbit mq running, and ready to publish for exchange => RABBIT_EVENT_PEOPLE_TOPIC_NAME
- */
 (async () => {
 	await new Config().init();
 	const eventName = 'message.*.schedule';
-	Listener.on(eventName, (event: Event) => {
-		console.log('consume event', event);
+	Listener.on(eventName, (event: Event, context: Context) => {
+		console.log('consume event');
 		console.log(event.payload());
+		context.success(event);
 	});
 
 	const events: Event[] = [

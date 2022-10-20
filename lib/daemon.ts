@@ -1,16 +1,39 @@
 import { Config } from './config';
+import { ListenersManager } from './listeners';
 
 export class Daemon {
-	config = Config;
-	constructor() {}
+	static config = Config;
 
-	start() {
-		this.config.broker.getConnection();
+	public static async start(): Promise<void> {
+		ListenersManager.bindAllListeners();
+		Daemon.bindSignals();
 	}
 
-	stop() {
-		this.config.broker.closeConnection();
+	public static bindSignals(): void {
+		setInterval(() => {
+			console.log(`
+				Library Running
+				\nList of Listenning channels:\n[${ListenersManager.getListenerConfigurations().map(
+					(config) => config.routingKey,
+				)}]
+			`);
+		}, 5000);
+
+		process.stdin.resume();
+
+		process.on('exit', () => {
+			console.log('stopped due to exit system');
+			Daemon.stop();
+			process.exit(0);
+		});
+
+		process.on('SIGINT', () => {
+			console.log('stopped due to CTRL+C');
+			Daemon.stop();
+		});
 	}
 
-	bindSignals() {}
+	public static stop(): void {
+		if (Daemon.config.broker.connection) Daemon.config.broker.closeConnection();
+	}
 }

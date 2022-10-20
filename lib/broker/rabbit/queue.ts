@@ -1,8 +1,10 @@
-import { Channel, ConsumeMessage } from 'amqplib';
+import { Channel, ConsumeMessage, MessageProperties } from 'amqplib';
 import { Event } from '../../event';
+import { DeliveryInfo } from '../../listeners/base-listener';
 import { Topic } from './topic';
 import { Config } from '../../config';
 import { Context } from '@lib/context';
+import { RabbitContext } from './rabbit-context';
 
 export class Queue {
 	private config = Config;
@@ -20,7 +22,7 @@ export class Queue {
 	 */
 	async subscribe(
 		routingKey: string,
-		callback: (event: Event, context?: Context) => void,
+		callback: (event: Event, context: Context) => void,
 	): Promise<ConsumeMessage> {
 		const baseNameArr = routingKey.split('.');
 		const baseName = baseNameArr.slice(0, 2).join('.');
@@ -29,14 +31,42 @@ export class Queue {
 		this.channel.bindQueue(name, Config.TOPIC_NAME, routingKey);
 
 		return new Promise<ConsumeMessage>(async (resolve) => {
-			await this.channel.consume(name, (event) => {
-				const eventContent: Record<string, any> = JSON.parse(
+			await this.channel.consume(name, (event: ConsumeMessage) => {
+				const eventPayload: Record<string, any> = JSON.parse(
 					String(event.content),
 				);
-				callback(new Event(name, eventContent));
+				const deliveryInfo: DeliveryInfo = {
+					deliveryTag: String(event.fields.deliveryTag),
+					routingKey: event.fields.routingKey,
+				};
+
+				const properties = event.properties;
+
+				this.callback(deliveryInfo, properties, eventPayload, callback);
 				resolve(event);
 			});
 		});
+	}
+
+	/**
+	 * Callback to create new rabbit context to handle recieved message
+	 * @param {string} deliveryInfo - info about recived queue message
+	 * @param {MessageProperties} properties - additional info about recieved message
+	 * @param {Record<string, any>}  payload - actually the body message
+	 * @param {Function} method - next callback to execute anything, like call context (ack, nack...whatever)
+	 * @returns {void}
+	 *
+	 */
+	private callback(
+		deliveryInfo: DeliveryInfo,
+		properties: MessageProperties,
+		payload: Record<string, any>,
+		method: (event: Event, context: Context) => void,
+	) {
+		const eventName = deliveryInfo.routingKey;
+		const event = new Event(eventName, payload);
+		const context = new RabbitContext(this.channel, deliveryInfo);
+		method(event, context);
 	}
 
 	private queueOptions() {
