@@ -1,7 +1,6 @@
 import { Context } from '../context';
 import { ListenersManager } from './listeners-manager';
 import { Config } from '../config';
-import { Event } from '..';
 
 export type DeliveryInfo = {
 	deliveryTag: string;
@@ -9,63 +8,82 @@ export type DeliveryInfo = {
 };
 
 export type ListenerConfig = {
-	listener: BaseListener;
-	method: (event: any) => void;
+	listener: typeof BaseListener;
+	method: string;
 	routingKey: string;
 };
 
-export abstract class BaseListener implements Context {
+export class BaseListener {
 	public context: Context;
 
 	constructor(context: Context) {
 		this.context = context;
 	}
 
-	public bindEvent(method: (event: Event) => void, eventName: string) {
-		const appName = Config.APP_NAME;
-		ListenersManager.registerListenerConfiguration({
-			listener: this,
-			method,
-			routingKey: this.fixedEventName(eventName, 'all'),
-		});
+	/**
+	 * Address some method name for a event message and add it to global ListenerManager
+	 * @param {string} method - name for the class method tha will handle incoming events
+	 * @param {string} eventName - name for the queue event message
+	 */
 
-		ListenersManager.registerListenerConfiguration({
-			listener: this,
-			method,
-			routingKey: this.fixedEventName(eventName, appName),
-		});
+	public static bindEvent(method: string, eventName: string) {
+		const appName = Config.APP_NAME;
+		if (eventName.split('.').length <= 3) {
+			ListenersManager.registerListenerConfiguration({
+				listener: this,
+				method,
+				routingKey: this.fixedEventName(eventName, 'all'),
+			});
+
+			ListenersManager.registerListenerConfiguration({
+				listener: this,
+				method,
+				routingKey: this.fixedEventName(eventName, appName),
+			});
+		} else
+			ListenersManager.registerListenerConfiguration({
+				listener: this,
+				method,
+				routingKey: this.fixedEventName(eventName, appName),
+			});
 	}
 
-	public success() {
+	/**
+	 * Confirm message delivery and make the handshake with the channel
+	 * @returns void
+	 */
+	public success(): void {
 		this.context.success();
 	}
 
-	public fail() {
+	/**
+	 * Deny message delivery and handshake with the channel
+	 * @returns void
+	 */
+	public fail(): void {
 		this.context.fail();
 	}
 
-	public reject() {
+	/**
+	 * Reject the message and handshake with the channel
+	 * @returns void
+	 */
+	public reject(): void {
 		this.context.reject();
 	}
 
-	public callback(method: (event: Event) => void, event: Event) {
-		method(event);
-	}
-
-	private fixedEventName(eventName: string, postFix: string): string {
+	/**
+	 * Normalizes the event name based on the size of eventName
+	 * @param {string} eventName
+	 * @param {string} postFix
+	 * @returns string
+	 */
+	private static fixedEventName(eventName: string, postFix: string): string {
 		const split = eventName.split('.');
 		const parts = split.length;
 
 		if (parts <= 3) return `#${eventName}.#${postFix}`;
 		if (parts === 4) return `#${split.splice(0, 3).join('.')}.#${postFix}`;
 		return eventName;
-	}
-}
-
-export class CustomListener extends BaseListener {
-	public context: Context;
-	constructor(context: Context) {
-		super(context);
-		this.context = context;
 	}
 }

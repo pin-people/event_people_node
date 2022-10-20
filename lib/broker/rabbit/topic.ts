@@ -4,8 +4,11 @@ import { Channel } from 'amqplib';
 
 export class Topic {
 	constructor(private readonly channel: Channel, readonly topic: string) {}
-
-	getTopic() {
+	/**
+	 *
+	 * @returns {String}
+	 */
+	public getTopic(): string {
 		return this.topic;
 	}
 
