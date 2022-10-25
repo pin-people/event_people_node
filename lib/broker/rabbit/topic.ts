@@ -1,24 +1,33 @@
-import { Config } from '../../config';
 import { Event } from '../../event';
 import { Channel } from 'amqplib';
-
+import { MissingAttributeError } from '../../utils/errors';
 export class Topic {
 	constructor(private readonly channel: Channel, readonly topic: string) {}
 	/**
-	 *
-	 * @returns {String}
+	 *Returns the topic string
+	 * @returns {String} topic string
 	 */
 	public getTopic(): string {
 		return this.topic;
 	}
 
-	getChannel() {
+	/**
+	 *Returns the queue channel
+	 * @returns {Channel} Channel
+	 */
+	getChannel(): Channel {
 		return this.channel;
 	}
 
-	produce(event: Event) {
+	/**
+	 * Publish a message event through the queue channel
+	 * @param {EVent} event - message event that will be produced
+	 */
+	produce(event: Event): void {
+		if (!this.getTopic()) throw new MissingAttributeError('topic');
+
 		this.channel.publish(
-			Config.TOPIC_NAME,
+			this.topic,
 			event.getName(),
 			Buffer.from(JSON.stringify(event.payload())),
 			{

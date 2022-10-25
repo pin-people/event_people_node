@@ -7,7 +7,7 @@
 		"lib": "lib"
 	},
 	"scripts": {
-		"start": "ts-node-dev --respawn  example",
+		"start": "ts-node-dev --respawn  example/listener",
 		"lint": "eslint \"{src,lib,test}/**/*.ts\" --fix",
 		"test": "yarn test"
 	},

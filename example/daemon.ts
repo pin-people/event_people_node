@@ -1,44 +1,47 @@
-import { Config, Daemon, Emitter, Event } from '../lib';
+import { Config, Daemon, Event } from '../lib';
 import { BaseListener } from '../lib/listeners';
 
 (async () => {
-	await new Config().init();
-
 	class CustomEventListener extends BaseListener {
-		test(event: Event) {
+		pay(event: Event) {
 			console.log(
-				`TEST ${JSON.stringify(event.getBody())} for ${event.getName()}`,
+				`Received ${JSON.stringify(event.getBody())} for ${
+					event.getBody()['name']
+				} ~> ${event.getName()}`,
 			);
 			this.success();
 		}
-		test2(event: Event) {
+		receive(event: Event) {
+			if (event.getBody()['ammount'] > 500) {
+				console.log(
+					`Received ${event.getBody()['amount']} from ${
+						event.getBody()['name']
+					} ~> ${event.getName}`,
+				);
+				this.success();
+			} else {
+				console.log('[Consumer] Got SKIPPED message');
+				return this.reject();
+			}
+		}
+
+		privateChannel(event: Event) {
 			console.log(
-				`TEST 2 ${JSON.stringify(event.getBody())} for ${event.getName()}`,
+				`[consumer] Got a private message: ${
+					event.getBody()['message']
+				} ~> ${event.getName()}`,
 			);
-			this.reject();
 		}
 	}
 
-	CustomEventListener.bindEvent('test', 'message.*.schedule');
-	CustomEventListener.bindEvent('test2', 'message.*.sent');
+	CustomEventListener.bindEvent('pay', 'resource.custom.pay');
+	CustomEventListener.bindEvent('receive', 'resource.custom.receive');
+	CustomEventListener.bindEvent(
+		'privateChannel',
+		'resource.custom.private.service',
+	);
 
-	setTimeout(() => {
-		const events: Event[] = [
-			new Event('message.*.schedule', {
-				msg: 'new message for ya folks',
-			}),
-		];
-		Emitter.trigger(events);
-	}, 6000);
-
-	setInterval(() => {
-		const events: Event[] = [
-			new Event('message.*.sent', {
-				msg: 'take this buddy',
-			}),
-		];
-		Emitter.trigger(events);
-	}, 5000);
-
+	await new Config().init();
+	console.log('****************** Daemon Ready ******************');
 	Daemon.start();
 })();

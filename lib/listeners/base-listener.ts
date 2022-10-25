@@ -79,11 +79,15 @@ export class BaseListener {
 	 * @returns string
 	 */
 	private static fixedEventName(eventName: string, postFix: string): string {
+		let routingKey = eventName;
 		const split = eventName.split('.');
 		const parts = split.length;
 
-		if (parts <= 3) return `#${eventName}.#${postFix}`;
-		if (parts === 4) return `#${split.splice(0, 3).join('.')}.#${postFix}`;
+		if (parts <= 3) routingKey = `#${eventName}.#${postFix}`;
+		else if (parts === 4) {
+			const baseName = `#${split.splice(0, 3).join('.')}`;
+			routingKey = `${baseName}.#${postFix}`;
+		}
 		return eventName;
 	}
 }

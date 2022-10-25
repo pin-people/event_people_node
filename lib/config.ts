@@ -15,15 +15,24 @@ export class Config {
 		process.env.RABBIT_URL || 'amqp://admin:admin@127.0.0.1:5672';
 	public static fullURL = `${this.URL}/#${this.VHOST_NAME}`;
 
+	/**
+	 *Setup for the Message broker that will handle events implementing BaseBroker
+	 * @param {BaseBroker} broker
+	 */
 	constructor(broker?: BaseBroker) {
 		Config.broker = broker || new RabbitBroker();
 	}
 
+	/**
+	 * Initialize getting the broker connection
+	 */
 	public async init(): Promise<void> {
 		await Config.broker.getConnection();
 	}
-
-	public static getBrocker() {
+	/**
+	 * @returns {BaseBroker} BaseBroker
+	 */
+	public static getBroker(): BaseBroker {
 		return Config.broker;
 	}
 }

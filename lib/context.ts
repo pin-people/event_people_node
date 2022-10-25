@@ -1,17 +1,17 @@
 export interface Context {
 	/**
 	 * Confirm message delivery and make the handshake with the channel
-	 * @returns {void}
+	 * @returns {void} void
 	 */
-	success(eventMessage?: any): void;
+	success(): void;
 	/**
 	 * Deny message delivery and handshake with the channel
-	 * @returns {void}
+	 * @returns {void} void
 	 */
-	fail(eventMessage?: any): void;
+	fail(): void;
 	/**
 	 * Reject the message and handshake with the channel
-	 * @returns {void}
+	 * @returns {void} void
 	 */
-	reject(eventMessage?: any): void;
+	reject(): void;
 }
