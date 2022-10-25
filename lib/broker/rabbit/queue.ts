@@ -16,7 +16,7 @@ export class Queue {
 	/**
 	 * Makes a subscription to receive events for a certain routingKey
 	 * @param {string} routingKey - name path for the queue. Example: messages.*.all
-	 * @param {Function}  callback - function to execute actions after event recieved
+	 * @param {Function}  callback - function to execute actions after event received
 	 * @returns {Promise<ConsumeMessage>}
 	 *
 	 */
@@ -47,7 +47,7 @@ export class Queue {
 	}
 
 	/**
-	 * Callback to create new rabbit context to handle recieved message
+	 * Callback to create new rabbit context to handle received message
 	 * @param {string} deliveryInfo - info about recived queue message
 	 * @param {Record<string, any>}  payload - actually the body message
 	 * @param {Function} method - next callback to execute anything, like call context (ack, nack...whatever)

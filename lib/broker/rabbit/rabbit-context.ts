@@ -5,7 +5,7 @@ import { Message } from 'amqplib/properties';
 export class RabbitContext implements Context {
 	constructor(
 		private readonly channel: Channel,
-		private readonly message?: Message,
+		private readonly message: Message,
 	) {}
 
 	public success(): void {
@@ -14,11 +14,9 @@ export class RabbitContext implements Context {
 
 	public fail(): void {
 		this.channel.nack(this.message, false, true);
-		console.log('rabbit nack');
 	}
 
 	public reject(): void {
 		this.channel.reject(this.message, false);
-		console.log('rabbit reject');
 	}
 }
