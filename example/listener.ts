@@ -1,10 +1,10 @@
 import { Context } from '../lib/context';
-import { Config, Event, Listener } from '../lib';
+import { Config, Emitter, Event, Listener } from '../lib';
 
 (async () => {
 	await new Config().init();
 
-	const eventName = 'resource.origin.action';
+	const eventName = 'resource.custom.pay';
 
 	console.log('Start receiving messages');
 
@@ -14,9 +14,6 @@ import { Config, Event, Listener } from '../lib';
 		context.success();
 	});
 
-	setTimeout(() => {
-		console.log(Config.fullURL);
-		// console.log('Stop receiving messages');
-		// Config.broker.closeConnection();
-	}, 500);
+	const events = [new Event('resource.origin.action', { message: 'amqplib' })];
+	Emitter.trigger(events);
 })();
