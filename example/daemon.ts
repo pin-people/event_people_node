@@ -1,5 +1,5 @@
 import { Config, Daemon, Event } from '../lib';
-import { BaseListener } from '../lib/listeners';
+import { BaseListener, ListenersManager } from '../lib/listeners';
 
 (async () => {
 	class CustomEventListener extends BaseListener {
@@ -12,7 +12,7 @@ import { BaseListener } from '../lib/listeners';
 			this.success();
 		}
 		receive(event: Event) {
-			if (event.getBody()['ammount'] > 500) {
+			if (+event.getBody()['ammount'] > 500) {
 				console.log(
 					`Received ${event.getBody()['amount']} from ${
 						event.getBody()['name']
@@ -44,4 +44,13 @@ import { BaseListener } from '../lib/listeners';
 	await new Config().init();
 	console.log('****************** Daemon Ready ******************');
 	Daemon.start();
+
+	setInterval(() => {
+		console.log(`
+			Library Running
+			\nList of Listenning channels:\n[${ListenersManager.getListenerConfigurations().map(
+				(config) => config.routingKey,
+			)}]
+		`);
+	}, 5000);
 })();
