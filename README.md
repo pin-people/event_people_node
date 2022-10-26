@@ -156,36 +156,45 @@ Config.close_connection();
 If your project needs to handle lots of events you can extend `eventPeople.BaseListeners` class to bind how many events you need to instance methods, so whenever an event is received the method will be called automatically.
 
 ```typescript
-import { Event, BaseListeners } from "eventPeople";
+import { Event, BaseListeners } from 'eventPeople';
 
 class CustomEventListener extends BaseListeners {
-  this.bindEvent('resource.custom.pay', this.pay);
-  this.bindEvent('resource.custom.receive', this.receive);
-  this.bindEvent('resource.custom.private.service', this.privateChannel);
+	pay(event: Event): void {
+		console.log(
+			`Paid #{event.body['amount']} for #{event.body['name']} ~> #{event.name}`,
+		);
 
-  pay(event: Event): void {
-    console.log(`Paid #{event.body['amount']} for #{event.body['name']} ~> #{event.name}`);
+		this.success();
+	}
 
-    this.success();
-  }
+	receive(event: Event): void {
+		if (event.body.amount > 500) {
+			console.log(
+				`Received ${event.body['amount']} from ${event.body['name']} ~> ${event.name}`,
+			);
+		} else {
+			console.log('[consumer] Got SKIPPED message');
+			return this.reject();
+		}
 
-  receive(event: Event): void {
-    if (event.body.amount > 500) {
-      console.log(`Received ${event.body['amount']} from ${event.body['name']} ~> ${event.name}`);
-    } else {
-      console.log('[consumer] Got SKIPPED message');
-      return this.reject();
-    }
+		this.success();
+	}
 
-    this.success();
-  }
+	privateChannel(event: Event): void {
+		console.log(
+			`[consumer] Got a private message: "${event.body['message']}" ~> ${event.name}`,
+		);
 
-  privateChannel(event: Event): void {
-    console.log(`[consumer] Got a private message: "${event.body['message']}" ~> ${event.name}`);
-
-    this.success();
-  }
+		this.success();
+	}
 }
+
+CustomEventListener.bindEvent('resource.custom.pay', this.pay);
+CustomEventListener.bindEvent('resource.custom.receive', this.receive);
+CustomEventListener.bindEvent(
+	'resource.custom.private.service',
+	this.privateChannel,
+);
 ```
 
 [See more details](https://github.com/pin-people/event_people_node/blob/master/examples/daemon.rb)
@@ -195,41 +204,50 @@ class CustomEventListener extends BaseListeners {
 If you have the need to create a deamon to consume messages on background you can use the `eventPeople.Daemon.start` method to do so with ease. Just remember to define or import all the event bindings before starting the daemon.
 
 ```typescript
-import { Daemon, Event, BaseListeners } from "eventPeople";
+import { Daemon, Event, BaseListeners } from 'eventPeople';
 
 class CustomEventListener extends BaseListeners {
-  this.bindEvent('resource.custom.pay', this.pay);
-  this.bindEvent('resource.custom.receive', this.receive);
-  this.bindEvent('resource.custom.private.service', this.privateChannel);
+	pay(event: Event): void {
+		console.log(
+			`Paid ${event.body.amount} for ${event.body.name} ~> ${event.name}`,
+		);
 
-  pay(event: Event): void {
-    console.log(`Paid ${event.body.amount} for ${event.body.name} ~> ${event.name}`);
+		this.success();
+	}
 
-    this.success();
-  }
+	receive(event: Event): void {
+		if (event.body.amount > 500) {
+			console.log(
+				`Received ${event.body.amount} from ${event.body.name} ~> ${event.name}`,
+			);
+		} else {
+			console.log('[consumer] Got SKIPPED message');
 
-  receive(event: Event): void {
-    if(event.body.amount > 500) {
-      console.log(`Received ${event.body.amount} from ${event.body.name} ~> ${event.name}`);
-    } else {
-      console.log('[consumer] Got SKIPPED message');
+			return this.reject();
+		}
 
-      return this.reject();
-    }
+		this.success();
+	}
 
-    this.success();
-  }
+	private_channel(event: Event): void {
+		console.log(
+			`[consumer] Got a private message: "${event.body.message}" ~> ${event.name}`,
+		);
 
-  private_channel(event: Event): void {
-    console.log(`[consumer] Got a private message: "${event.body.message}" ~> ${event.name}`);
-
-    this.success();
-  }
+		this.success();
+	}
 }
+
+CustomEventListener.bindEvent('resource.custom.pay', this.pay);
+CustomEventListener.bindEvent('resource.custom.receive', this.receive);
+CustomEventListener.bindEvent(
+	'resource.custom.private.service',
+	this.privateChannel,
+);
 
 console.log('****************** Daemon Ready ******************');
 
-Daemon.start()
+Daemon.start();
 ```
 
 [See more details](https://github.com/pin-people/event_people_node/blob/master/examples/daemon.rb)
