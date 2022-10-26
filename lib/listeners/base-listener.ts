@@ -88,6 +88,6 @@ export class BaseListener {
 			const baseName = `#${split.splice(0, 3).join('.')}`;
 			routingKey = `${baseName}.#${postFix}`;
 		}
-		return eventName;
+		return routingKey;
 	}
 }
