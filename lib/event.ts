@@ -28,7 +28,7 @@ export class Event {
 	 */
 	payload(): EventPayload {
 		return {
-			headers: this.generateHeaders(),
+			headers: this.getHeaders(),
 			body: this.body,
 		};
 	}
@@ -52,7 +52,7 @@ export class Event {
 	 * Builds the headers based on the app_name and event name and schemaVersion
 	 * @returns {EventHeaders} - EventHeaders
 	 */
-	private generateHeaders(): EventHeaders {
+	getHeaders(): EventHeaders {
 		const headerSpec = this.name.split('.');
 
 		this.headers = {

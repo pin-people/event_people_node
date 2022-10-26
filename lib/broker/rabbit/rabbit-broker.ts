@@ -19,7 +19,7 @@ export class RabbitBroker implements BaseBroker {
 	 */
 	public async getConnection(): Promise<Connection> {
 		if (!this.connection) {
-			this.connection = await connect(Config.URL);
+			this.connection = await connect(Config.fullURL);
 		}
 		this.channel = await this.getChannel();
 		this.topic = new Topic(this.channel, Config.TOPIC_NAME);
