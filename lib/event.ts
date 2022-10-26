@@ -9,6 +9,11 @@ export type EventHeaders = {
 	schemaVersion: number;
 };
 
+export type EventPayload = {
+	headers: EventHeaders;
+	body: Record<string, any>;
+};
+
 export class Event {
 	private headers: EventHeaders;
 	constructor(
@@ -17,22 +22,37 @@ export class Event {
 		private readonly schemaVersion = 1.0,
 	) {}
 
-	payload() {
+	/**
+	 * Constructs eventPayload, containing headers and the body for this event
+	 * @returns {EventPayload} - EventPayload
+	 */
+	payload(): EventPayload {
 		return {
-			headers: this.headers,
+			headers: this.generateHeaders(),
 			body: this.body,
 		};
 	}
-
-	getBody() {
+	/**
+	 * Returns the event body
+	 * @returns {Record<any, string>} - Record<any, string>
+	 */
+	getBody(): Record<any, string> {
 		return this.body;
 	}
 
-	getName() {
+	/**
+	 * Returns full event name
+	 * @returns {string} - string
+	 */
+	getName(): string {
 		return this.name;
 	}
 
-	private generateHeaders() {
+	/**
+	 * Builds the headers based on the app_name and event name and schemaVersion
+	 * @returns {EventHeaders} - EventHeaders
+	 */
+	private generateHeaders(): EventHeaders {
 		const headerSpec = this.name.split('.');
 
 		this.headers = {
@@ -43,9 +63,14 @@ export class Event {
 			destination: headerSpec[3],
 			schemaVersion: this.schemaVersion,
 		};
+
+		return this.headers;
 	}
 
-	private fixName() {
+	/**
+	 * Adds a suffix 'all' for event name wich has length != than 3
+	 */
+	private fixName(): void {
 		if (this.name.split('.').length != 3) this.name = `${this.name}.all`;
 	}
 }
