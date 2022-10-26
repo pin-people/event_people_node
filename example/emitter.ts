@@ -37,8 +37,8 @@ import { Config, Emitter, Event } from '../lib';
 
 	console.log('Sending messsages.');
 
-	Emitter.trigger([event]);
-	Emitter.trigger(events);
+	Emitter.trigger(event);
+	Emitter.trigger(...events);
 
 	console.log('Mesages sent!');
 

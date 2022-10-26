@@ -13,7 +13,7 @@ export class Config {
 		process.env.RABBIT_EVENT_PEOPLE_VHOST || 'event-people';
 	public static URL =
 		process.env.RABBIT_URL || 'amqp://admin:admin@127.0.0.1:5672';
-	public static fullURL = `${this.URL}/#${this.VHOST_NAME}`;
+	public static fullURL = `${this.URL}/${this.VHOST_NAME}`;
 
 	/**
 	 *Setup for the Message broker that will handle events implementing BaseBroker
