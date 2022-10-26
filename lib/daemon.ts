@@ -17,15 +17,6 @@ export class Daemon {
 	 * @returns  void
 	 */
 	public static bindSignals(): void {
-		setInterval(() => {
-			console.log(`
-				Library Running
-				\nList of Listenning channels:\n[${ListenersManager.getListenerConfigurations().map(
-					(config) => config.routingKey,
-				)}]
-			`);
-		}, 5000);
-
 		process.stdin.resume();
 
 		process.on('exit', () => {
