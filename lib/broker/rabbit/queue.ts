@@ -36,7 +36,7 @@ export class Queue {
 		await this.channel.bindQueue(
 			assertedQueue.queue,
 			this.topic.getTopic(),
-			'',
+			routingKey,
 		);
 
 		return new Promise<Message>(async (resolve) => {
