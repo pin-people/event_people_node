@@ -39,6 +39,7 @@ export class Queue {
 			routingKey,
 		);
 
+		console.log(name);
 		return new Promise<Message>(async (resolve) => {
 			await this.channel.consume(name, (message: ConsumeMessage) => {
 				const eventPayload: Record<string, any> = JSON.parse(
@@ -83,7 +84,7 @@ export class Queue {
 	private queueName(routingKey: string): string {
 		const splitEventName = routingKey.split('.');
 
-		if (splitEventName.length < 3 || splitEventName.length > 4)
+		if (![3, 4].includes(splitEventName.length))
 			throw new Error(
 				`invalid event name: "${routingKey}" length, should match resource.origin.action or resource.origin.action.dest pattern`,
 			);
