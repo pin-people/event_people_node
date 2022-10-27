@@ -1,5 +1,5 @@
 import { Context } from '../lib/context';
-import { Config, Emitter, Event, Listener } from '../lib';
+import { Config, Event, Listener } from '../lib';
 
 (async () => {
 	await new Config().init();

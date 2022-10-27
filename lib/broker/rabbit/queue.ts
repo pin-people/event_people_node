@@ -25,19 +25,17 @@ export class Queue {
 		callback: (event: Event, context: Context) => void,
 	): Promise<Message> {
 		const name = this.queueName(routingKey);
-		const assertedExchange = await this.channel.assertExchange(
-			Config.TOPIC_NAME,
-			'topic',
-			{ durable: true },
-		);
+
 		const assertedQueue = await this.channel.assertQueue(name, {
 			exclusive: false,
 			durable: true,
 		});
 
+		await this.channel.prefetch(1);
+
 		await this.channel.bindQueue(
 			assertedQueue.queue,
-			assertedExchange.exchange,
+			this.topic.getTopic(),
 			'',
 		);
 
@@ -85,7 +83,7 @@ export class Queue {
 	private queueName(routingKey: string): string {
 		const splitEventName = routingKey.split('.');
 
-		if (splitEventName.length < 3)
+		if (splitEventName.length < 3 || splitEventName.length > 4)
 			throw new Error(
 				`invalid event name: "${routingKey}" length, should match resource.origin.action or resource.origin.action.dest pattern`,
 			);
