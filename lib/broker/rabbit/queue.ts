@@ -22,7 +22,7 @@ export class Queue {
 	 */
 	async subscribe(
 		routingKey: string,
-		callback: (event: Event, context: Context) => void,
+		method: (event: Event, context: Context) => void,
 	): Promise<Message> {
 		const name = this.queueName(routingKey);
 
@@ -39,7 +39,6 @@ export class Queue {
 			routingKey,
 		);
 
-		console.log(name);
 		return new Promise<Message>(async (resolve) => {
 			await this.channel.consume(name, (message: ConsumeMessage) => {
 				const eventPayload: Record<string, any> = JSON.parse(
@@ -50,7 +49,7 @@ export class Queue {
 					routingKey: message.fields.routingKey,
 				};
 
-				this.callback(deliveryInfo, eventPayload, message as Message, callback);
+				this.callback(deliveryInfo, eventPayload, message as Message, method);
 				resolve(message);
 			});
 		});

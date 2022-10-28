@@ -1,7 +1,18 @@
 import { Config, Emitter, Event } from '../lib';
+import {
+	RABBIT_EVENT_PEOPLE_APP_NAME,
+	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+	RABBIT_EVENT_PEOPLE_VHOST,
+	RABBIT_URL,
+} from './constants';
 
 (async () => {
-	await new Config().init();
+	await new Config(
+		RABBIT_URL,
+		RABBIT_EVENT_PEOPLE_VHOST,
+		RABBIT_EVENT_PEOPLE_APP_NAME,
+		RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+	).init();
 
 	const events: Event[] = [];
 	let eventName = 'resource.custom.pay';

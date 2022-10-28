@@ -42,8 +42,7 @@
 		"typescript": "^4.8.4"
 	},
 	"dependencies": {
-		"amqplib": "^0.10.3",
-		"dotenv": "^16.0.3"
+		"amqplib": "^0.10.3"
 	},
 	"jest": {
 		"coveragePathIgnorePatterns": [
