@@ -1,5 +1,11 @@
 import { Config, Daemon, Event } from '../lib';
 import { BaseListener, ListenersManager } from '../lib/listeners';
+import {
+	RABBIT_EVENT_PEOPLE_APP_NAME,
+	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+	RABBIT_EVENT_PEOPLE_VHOST,
+	RABBIT_URL,
+} from './constants';
 
 (async () => {
 	class CustomEventListener extends BaseListener {
@@ -41,7 +47,13 @@ import { BaseListener, ListenersManager } from '../lib/listeners';
 		'resource.custom.private.service',
 	);
 
-	await new Config().init();
+	await new Config(
+		RABBIT_URL,
+		RABBIT_EVENT_PEOPLE_VHOST,
+		RABBIT_EVENT_PEOPLE_APP_NAME,
+		RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+	).init();
+
 	console.log('****************** Daemon Ready ******************');
 	Daemon.start();
 
