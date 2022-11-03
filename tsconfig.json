@@ -1,5 +1,5 @@
 {
-	"include": ["src/**/*.ts", "lib/**/*.ts"],
+	"include": ["src/**/*.ts", "lib/**/*.ts", ".eslintrc.js"],
 	"exclude": ["dist/", "node_modules", "test"],
 	"compilerOptions": {
 		"module": "commonjs",

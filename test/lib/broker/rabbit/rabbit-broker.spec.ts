@@ -39,7 +39,7 @@ describe('broker/rabbit/rabbit-broker.ts', () => {
 		await broker.closeConnection();
 
 		expect(broker).toBeDefined();
-		expect(connectSpy).toBeCalledWith(Config.FUll_URL);
+		expect(connectSpy).toBeCalledWith(Config.FULL_URL);
 		expect(mockConnection.close).toBeCalled();
 	});
 
@@ -53,12 +53,9 @@ describe('broker/rabbit/rabbit-broker.ts', () => {
 
 		const queueSpySubscribe = jest
 			.spyOn(Queue.prototype, 'subscribe')
-			.mockResolvedValueOnce(
-				new Promise<Message>((resolve) => resolve({} as Message)),
-			);
+			.mockResolvedValueOnce(new Promise<void>(() => {}));
 
 		await broker.consume(eventName, mockSuccessCallback);
-		expect(queueSpySubscribe).toBeCalled();
 		expect(queueSpySubscribe).toBeCalledTimes(1);
 		expect(queueSpySubscribe).toBeCalledWith(eventName, mockSuccessCallback);
 	});
@@ -78,7 +75,6 @@ describe('broker/rabbit/rabbit-broker.ts', () => {
 	it('closeConnection()', async () => {
 		const closeSpy = jest.spyOn(mockConnection, 'close');
 		await broker.closeConnection();
-
 		expect(closeSpy).toBeCalled();
 	});
 });

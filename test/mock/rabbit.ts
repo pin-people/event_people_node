@@ -1,4 +1,4 @@
-import { Channel, Connection } from 'amqplib';
+import { Channel, Connection, Message } from 'amqplib';
 import { Context, Event } from '../../lib';
 import { Queue } from '../../lib/broker/rabbit/queue';
 
@@ -20,7 +20,13 @@ export const mockConnection: Partial<Connection> = {
 	close: jest.fn(),
 };
 
-class MockContext implements Context {
+export class MockContext implements Context {
+	channel: Channel;
+	message: Message;
+	constructor(channel: Channel, message: Message) {
+		this.channel = channel;
+		this.message = message;
+	}
 	success() {
 		console.log('mock success context');
 	}
@@ -31,7 +37,6 @@ class MockContext implements Context {
 		console.log('mock rejected context');
 	}
 }
-export const mockContext = new MockContext();
 
 export const mockSuccessCallback = (event: Event, context: Context) => {
 	console.log(event.getName());
