@@ -40,7 +40,7 @@ import {
 
 	events.push(new Event(eventName, body));
 
-	eventName = 'resource.origin.action';
+	eventName = 'resource.origin.action.all';
 	body = { bo: 'dy' };
 	const schemaVersion = 4.2;
 
@@ -53,5 +53,5 @@ import {
 
 	console.log('Mesages sent!');
 
-	Config.broker.closeConnection();
+	setTimeout(() => Config.broker.closeConnection(), 500);
 })();

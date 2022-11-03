@@ -7,7 +7,7 @@ export class Config {
 	public static TOPIC_NAME: string;
 	public static VHOST_NAME: string;
 	public static URL: string;
-	public static FUll_URL: string;
+	public static FULL_URL: string;
 
 	/**
 	 *Setup for the Message broker that will handle events implementing BaseBroker
@@ -24,7 +24,7 @@ export class Config {
 		Config.VHOST_NAME = vhost || 'event-people';
 		Config.APP_NAME = appName || 'event-people-node';
 		Config.TOPIC_NAME = topicName || 'event-people-exchange';
-		Config.FUll_URL = `${Config.URL}/${Config.VHOST_NAME}`;
+		Config.FULL_URL = `${Config.URL}/${Config.VHOST_NAME}`;
 
 		Config.broker = broker || new RabbitBroker();
 	}
