@@ -5,6 +5,7 @@ import { Topic } from './topic';
 import { Config } from '../../config';
 import { Context } from '@lib/context';
 import { RabbitContext } from './rabbit-context';
+import { MissingAttributeError } from '../../../lib/utils/errors';
 
 export class Queue {
 	private config = Config;
@@ -16,14 +17,14 @@ export class Queue {
 	/**
 	 * Makes a subscription to receive events for a certain routingKey
 	 * @param {string} routingKey - name path for the queue. Example: messages.*.all
-	 * @param {Function}  callback - function to execute actions after event received
+	 * @param {Function}  method - function to execute actions after event received
 	 * @returns {Promise<Message>} Promise of Message
 	 *
 	 */
 	async subscribe(
 		routingKey: string,
 		method: (event: Event, context: Context) => void,
-	): Promise<Message> {
+	): Promise<void> {
 		const name = this.queueName(routingKey);
 
 		const assertedQueue = await this.channel.assertQueue(name, {
@@ -39,19 +40,17 @@ export class Queue {
 			routingKey,
 		);
 
-		return new Promise<Message>(async (resolve) => {
-			await this.channel.consume(name, (message: ConsumeMessage) => {
-				const eventPayload: Record<string, any> = JSON.parse(
-					String(message.content),
-				);
-				const deliveryInfo: DeliveryInfo = {
-					deliveryTag: String(message.fields.deliveryTag),
-					routingKey: message.fields.routingKey,
-				};
+		await this.channel.consume(name, (message: ConsumeMessage) => {
+			const eventPayload: Record<string, any> = JSON.parse(
+				String(message.content),
+			);
 
-				this.callback(deliveryInfo, eventPayload, message as Message, method);
-				resolve(message);
-			});
+			const deliveryInfo: DeliveryInfo = {
+				deliveryTag: String(message.fields.deliveryTag),
+				routingKey: message.fields.routingKey,
+			};
+
+			this.callback(deliveryInfo, eventPayload, message as Message, method);
 		});
 	}
 
@@ -81,17 +80,17 @@ export class Queue {
 	 * @returns {string} string
 	 */
 	private queueName(routingKey: string): string {
-		const splitEventName = routingKey.split('.');
+		const splitEventName = routingKey.toLowerCase().split('.');
 
 		if (![3, 4].includes(splitEventName.length))
-			throw new Error(
-				`invalid event name: "${routingKey}" length, should match resource.origin.action or resource.origin.action.dest pattern`,
+			throw new MissingAttributeError(
+				`"${routingKey}" length, should match resource.origin.action or resource.origin.action.dest pattern`,
 			);
 
 		const last = splitEventName.length - 1;
 		if (splitEventName[last] !== 'all')
-			return `${this.config.APP_NAME.toLocaleLowerCase()}-${routingKey.toLocaleLowerCase()}.all`;
+			return `${this.config.APP_NAME.toLowerCase()}-${routingKey}.all`;
 
-		return `${this.config.APP_NAME.toLocaleLowerCase()}-${routingKey.toLocaleLowerCase()}`;
+		return `${this.config.APP_NAME.toLowerCase()}-${routingKey}`;
 	}
 }
