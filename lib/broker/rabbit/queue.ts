@@ -7,6 +7,8 @@ import { Context } from '@lib/context';
 import { RabbitContext } from './rabbit-context';
 import { MissingAttributeError } from '../../../lib/utils/errors';
 
+export const INVALID_ROUTING_KEY =
+	'routingKey should match resource.origin.action or resource.origin.action.dest patterns';
 export class Queue {
 	private config = Config;
 	constructor(
@@ -83,9 +85,7 @@ export class Queue {
 		const splitEventName = routingKey.toLowerCase().split('.');
 
 		if (![3, 4].includes(splitEventName.length))
-			throw new MissingAttributeError(
-				`"${routingKey}" length, should match resource.origin.action or resource.origin.action.dest pattern`,
-			);
+			throw new MissingAttributeError(INVALID_ROUTING_KEY);
 
 		const last = splitEventName.length - 1;
 		if (splitEventName[last] !== 'all')

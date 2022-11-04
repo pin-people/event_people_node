@@ -1,6 +1,6 @@
 export class MissingAttributeError extends Error {
 	constructor(message: string) {
-		super(`Invalid param: ${message}`);
+		super(message);
 		this.name = 'InvalidParamError';
 	}
 }

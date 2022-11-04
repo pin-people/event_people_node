@@ -15,7 +15,6 @@ import {
 	MockContext,
 	mockSuccessCallback,
 } from '../../../mock/rabbit';
-import { error } from 'console';
 
 describe('broker/rabbit/queue.ts', () => {
 	const routingKey = 'message.origin.custom.all';
@@ -74,7 +73,7 @@ describe('broker/rabbit/queue.ts', () => {
 			mockChannel as Channel,
 			RABBIT_EVENT_PEOPLE_TOPIC_NAME,
 		);
-		const queue = new Queue(mockChannel as Channel, topic);
+		const rabbitQueue = new Queue(mockChannel as Channel, topic);
 		makeAssertQueueSpy(queueName);
 
 		const deliveryInfo: DeliveryInfo = {
@@ -88,24 +87,14 @@ describe('broker/rabbit/queue.ts', () => {
 
 		const consumeSpy = jest
 			.spyOn(mockChannel, 'consume')
-			.mockImplementation((queue: string) => {
-				return queueCallback(deliveryInfo, payload, message, triggerMethod);
-			});
-
-		const queueCallback = jest
-			.fn()
 			.mockImplementation(
-				(
-					deliveryInfo: DeliveryInfo,
-					payload: Record<string, any>,
-					message: Message,
-					method: (event: Event, context: Context) => void,
-				) => {
-					const eventName = deliveryInfo.routingKey;
-					const event = new Event(eventName, payload);
-					const context = new MockContext(mockChannel as Channel, message);
-					method(event, context);
-				},
+				(queue: string) =>
+					rabbitQueue['callback'](
+						deliveryInfo,
+						payload,
+						message as Message,
+						triggerMethod,
+					) as any,
 			);
 
 		const triggerMethod = jest
@@ -118,10 +107,9 @@ describe('broker/rabbit/queue.ts', () => {
 				context.reject();
 			});
 
-		await queue.subscribe(routingKey, triggerMethod);
+		await rabbitQueue.subscribe(routingKey, triggerMethod);
 
 		expect(consumeSpy).toBeCalled();
-		expect(queueCallback).toBeCalled();
 		expect(triggerMethod).toBeCalled();
 	});
 
