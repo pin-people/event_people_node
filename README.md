@@ -17,36 +17,38 @@ As of today EventPeople uses RabbitMQ as its datasource, but there are plans to 
 
 Add this line to your application's `package.json`:
 
+```
+yarn add event_people
+```
+
+or
+
 ```yaml
   "Dependencies": {
     ...
-    "eventPeople": "^0.0.1"
+    "event_people": "^0.0.1"
     ...
   }
 ```
 
 Add then run this command to install dependencies:
 
-    $ npm i
+    $ yarn install
 
-Or to install and add it as a dependency in your project:
-
-    $ npm i --save 'event_people'
-
-And set env vars:
+And set config vars:
 
 ```bash
-export RABBIT_URL = 'amqp://guest:guest@localhost:5672'
-export RABBIT_EVENT_PEOPLE_APP_NAME = 'service_name'
-export RABBIT_EVENT_PEOPLE_VHOST = 'event_people'
-export RABBIT_EVENT_PEOPLE_TOPIC_NAME = 'event_people'
+export const RABBIT_URL = 'amqp://guest:guest@localhost:5672'
+export const RABBIT_EVENT_PEOPLE_APP_NAME = 'service_name'
+export const RABBIT_EVENT_PEOPLE_VHOST = 'event_people'
+export const RABBIT_EVENT_PEOPLE_TOPIC_NAME = 'event_people'
 ```
 
 ## Usage
 
 ### Events
 
-The main component of `EventPeople` is the `eventPeople.Event` class which wraps all the logic of an event and whenever you receive or want to send an event you will use it.
+The main component of `EventPeople` is the `Event` class which wraps all the logic of an event and whenever you receive or want to send an event you will use it.
 
 It has 2 attributes `name` and `payload`:
 
@@ -54,7 +56,14 @@ It has 2 attributes `name` and `payload`:
 - **payload:** It is the body of the massage, it should be a Hash object for simplicity and flexibility.
 
 ```typescript
-import { Event } from 'eventPeople';
+import { Event } from 'event_people';
+
+await new Config(
+	RABBIT_URL,
+	RABBIT_EVENT_PEOPLE_VHOST,
+	RABBIT_EVENT_PEOPLE_APP_NAME,
+	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+).init();
 
 const event_name = 'user.users.create';
 const body = { id: 42, name: 'John Doe', age: 35 };
@@ -73,6 +82,13 @@ You can emit events on your project passing an `eventPeople.Event` instance to t
 
 ```typescript
 import { Config, Emitter, Event } from 'eventPeople';
+
+await new Config(
+	RABBIT_URL,
+	RABBIT_EVENT_PEOPLE_VHOST,
+	RABBIT_EVENT_PEOPLE_APP_NAME,
+	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+).init();
 
 const event_name = 'receipt.payments.pay.users';
 const body = { amount: 350.76 };
@@ -111,7 +127,14 @@ import { Base } from 'eventPeople.listeners';
 // counterpart: 'payment.payments.pay.all'
 const event_name = 'payment.payments.pay';
 
-await Listener.on(event_name, (event: Event, context: Base) => {
+await new Config(
+	RABBIT_URL,
+	RABBIT_EVENT_PEOPLE_VHOST,
+	RABBIT_EVENT_PEOPLE_APP_NAME,
+	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+).init();
+
+Listener.on(event_name, (event: Event, context: Base) => {
 	console.log('');
 	console.log(`  - Received the "${event.name}" message from ${event.origin}:`);
 	console.log(`     Message: ${event.body}`);
@@ -189,6 +212,13 @@ class CustomEventListener extends BaseListeners {
 	}
 }
 
+await new Config(
+	RABBIT_URL,
+	RABBIT_EVENT_PEOPLE_VHOST,
+	RABBIT_EVENT_PEOPLE_APP_NAME,
+	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+).init();
+
 CustomEventListener.bindEvent('resource.custom.pay', this.pay);
 CustomEventListener.bindEvent('resource.custom.receive', this.receive);
 CustomEventListener.bindEvent(
@@ -245,6 +275,13 @@ CustomEventListener.bindEvent(
 	this.privateChannel,
 );
 
+await new Config(
+	RABBIT_URL,
+	RABBIT_EVENT_PEOPLE_VHOST,
+	RABBIT_EVENT_PEOPLE_APP_NAME,
+	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+).init();
+
 console.log('****************** Daemon Ready ******************');
 
 Daemon.start();
@@ -256,7 +293,7 @@ Daemon.start();
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `bin/test` to run the tests.
 
-To install this module onto your local machine, run `npm install .`.
+To install this module onto your local machine, run `npm install -g`.
 
 ## Contributing
 

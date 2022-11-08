@@ -1,28 +1,33 @@
 {
-	"include": ["src/**/*.ts", "lib/**/*.ts", ".eslintrc.js"],
-	"exclude": ["dist/", "node_modules", "test"],
 	"compilerOptions": {
-		"module": "commonjs",
-		"declaration": true,
-		"removeComments": true,
-		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
+		"allowJs": true,
 		"allowSyntheticDefaultImports": true,
-		"target": "es2017",
-		"sourceMap": true,
+		"alwaysStrict": true,
+		"composite": true,
+		"declaration": true,
+		"declarationMap": true,
+		"emitDecoratorMetadata": true,
 		"esModuleInterop": true,
-		"outDir": "./dist",
-		"baseUrl": "./",
-		"incremental": true,
-		"skipLibCheck": true,
-		"strictNullChecks": false,
-		"noImplicitAny": false,
-		"strictBindCallApply": false,
+		"experimentalDecorators": true,
 		"forceConsistentCasingInFileNames": false,
+		"incremental": true,
+		"module": "CommonJS",
+		"moduleResolution": "node",
 		"noFallthroughCasesInSwitch": false,
+		"noImplicitAny": false,
+		"outDir": "./dist",
 		"paths": {
-			"@src/*": ["./src/*"],
 			"@lib/*": ["./lib/*"]
-		}
-	}
+		},
+		"removeComments": false,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"strict": true,
+		"strictBindCallApply": false,
+		"strictNullChecks": false,
+		"target": "ES2022"
+	},
+	"exclude": ["dist/", "node_modules", "test"],
+	"include": [".eslintrc.js", "lib/**/*.ts"]
 }

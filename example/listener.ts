@@ -1,4 +1,4 @@
-import { Context } from '../lib/context';
+import { Context } from '../lib/';
 import { Config, Event, Listener } from '../lib';
 import {
 	RABBIT_EVENT_PEOPLE_APP_NAME,
