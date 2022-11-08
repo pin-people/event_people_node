@@ -1,15 +1,20 @@
 {
-	"name": "event-people-node",
-	"version": "1.0.0",
+	"name": "event_people_node7",
+	"version": "0.0.1",
 	"description": "Tool to simplify the communication of event based services.",
-	"directories": {
-		"test": "test",
-		"lib": "lib"
-	},
+	"main": "dist/lib/index.js",
+	"types": "dist/lib/index.d.ts",
+	"files": [
+		"dist",
+		"LICENSE",
+		"README.md",
+		"package.json"
+	],
 	"scripts": {
 		"example:listener": "ts-node example/listener",
 		"example:emitter": "ts-node example/emitter",
 		"example:daemon": "ts-node example/daemon",
+		"build": "tsc --outDir dist",
 		"lint": "eslint \"{src,lib,test}/**/*.ts\" --fix",
 		"test": "jest"
 	},

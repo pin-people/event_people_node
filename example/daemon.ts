@@ -1,5 +1,5 @@
-import { Config, Daemon, Event } from '../lib';
-import { BaseListener, ListenersManager } from '../lib/listeners';
+import { Config, Daemon, Event, BaseListener, ListenersManager } from '../lib';
+
 import {
 	RABBIT_EVENT_PEOPLE_APP_NAME,
 	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
