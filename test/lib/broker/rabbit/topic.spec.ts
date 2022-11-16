@@ -36,7 +36,7 @@ describe('broker/rabbit/topic', () => {
 		const topic = new Topic(mockChannel as Channel, Config.TOPIC_NAME);
 		const channel = topic.getChannel();
 
-		expect(channel).toStrictEqual(channel);
+		expect(channel).toStrictEqual(mockChannel);
 	});
 
 	describe('produce()', () => {

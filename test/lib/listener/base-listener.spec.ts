@@ -1,5 +1,6 @@
 import { Channel, Message } from 'amqplib';
 import { Config } from '../../../lib';
+
 import {
 	BaseListener,
 	ListenerConfig,
@@ -27,7 +28,7 @@ describe('lib/listener/base-listener.ts', () => {
 	});
 
 	describe('bindEvent()', () => {
-		it('bindEvent() - should bind 2 queues events, some.custom.action.all and some.custom.action.APP_NAME', () => {
+		it('- should bind 2 queues events, some.custom.action.all and some.custom.action.APP_NAME', () => {
 			class CustomListener extends BaseListener {
 				someMethod() {
 					this.context.success();
@@ -69,7 +70,7 @@ describe('lib/listener/base-listener.ts', () => {
 			});
 		});
 
-		it('bindEvent() - should just once for the queue some.custom.action.destination', () => {
+		it('- should just once for the queue some.custom.action.destination', () => {
 			class CustomListener extends BaseListener {
 				anotherMethod() {
 					this.context.success();
@@ -79,7 +80,7 @@ describe('lib/listener/base-listener.ts', () => {
 			const eventName = 'some.custom.action.destination';
 			const expectedEventName = eventName
 				.split('.')
-				.splice(0, 3)
+				.splice(0, 4)
 				.concat(Config.APP_NAME)
 				.join('.');
 
@@ -107,9 +108,71 @@ describe('lib/listener/base-listener.ts', () => {
 
 	it('success() - should call context.success', () => {
 		class CustomListener extends BaseListener {
-			someMethod() {}
+			makeSuccess() {
+				this.context.success();
+			}
 		}
 
-		CustomListener.bindEvent('someMethod', 'some.custom.action');
+		const mockContext = new MockContext(mockChannel as Channel, {} as Message);
+		const contextSpy = jest.spyOn(mockContext, 'success');
+		const listener = new CustomListener(mockContext);
+
+		listener.makeSuccess();
+
+		expect(contextSpy).toBeCalledTimes(1);
+	});
+
+	it('fail() - should call context.fail', () => {
+		class CustomListener extends BaseListener {
+			makeFail() {
+				this.context.fail();
+			}
+		}
+
+		const mockContext = new MockContext(mockChannel as Channel, {} as Message);
+		const contextSpy = jest.spyOn(mockContext, 'fail');
+		const listener = new CustomListener(mockContext);
+
+		listener.makeFail();
+
+		expect(contextSpy).toBeCalledTimes(1);
+	});
+
+	it('reject() - should call context.reject', () => {
+		class CustomListener extends BaseListener {
+			makeReject() {
+				this.context.reject();
+			}
+		}
+
+		const mockContext = new MockContext(mockChannel as Channel, {} as Message);
+		const contextSpy = jest.spyOn(mockContext, 'reject');
+		const listener = new CustomListener(mockContext);
+
+		listener.makeReject();
+
+		expect(contextSpy).toBeCalledTimes(1);
+	});
+
+	describe('fixedName', () => {
+		it('- should return correct queue name "custom.source.action.all"', () => {
+			const eventName = 'custom.source.action';
+			const postFix = 'all';
+
+			const fixedName = BaseListener['fixedEventName'](eventName, postFix);
+
+			expect(fixedName).toBe(`${eventName}.${postFix}`);
+		});
+
+		it('- should return correct queue name custom.source.action.destination', () => {
+			const eventName = 'custom.source.action.destination';
+			const postFix = 'all';
+
+			const fixedName = BaseListener['fixedEventName'](eventName, postFix);
+
+			console.log('fix', fixedName);
+
+			expect(fixedName).toBe(`${eventName}.${postFix}`);
+		});
 	});
 });
