@@ -170,8 +170,6 @@ describe('lib/listener/base-listener.ts', () => {
 
 			const fixedName = BaseListener['fixedEventName'](eventName, postFix);
 
-			console.log('fix', fixedName);
-
 			expect(fixedName).toBe(`${eventName}.${postFix}`);
 		});
 	});

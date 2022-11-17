@@ -10,11 +10,7 @@ import {
 	RABBIT_EVENT_PEOPLE_VHOST,
 	RABBIT_URL,
 } from '../../../mock/constants';
-import {
-	mockChannel,
-	MockContext,
-	mockSuccessCallback,
-} from '../../../mock/rabbit';
+import { mockChannel, mockSuccessCallback } from '../../../mock/rabbit';
 
 describe('broker/rabbit/queue.ts', () => {
 	const routingKey = 'message.origin.custom.all';
@@ -88,7 +84,7 @@ describe('broker/rabbit/queue.ts', () => {
 		const consumeSpy = jest
 			.spyOn(mockChannel, 'consume')
 			.mockImplementation(
-				(queue: string) =>
+				(_queue: string) =>
 					rabbitQueue['callback'](
 						deliveryInfo,
 						payload,
