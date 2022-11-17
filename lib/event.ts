@@ -71,6 +71,6 @@ export class Event {
 	 * Adds a suffix 'all' for event name wich has length != than 3
 	 */
 	private fixName(): void {
-		if (this.name.split('.').length != 3) this.name = `${this.name}.all`;
+		if (this.name.split('.').length < 4) this.name = `${this.name}.all`;
 	}
 }
