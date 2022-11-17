@@ -8,6 +8,13 @@ import {
 } from './constants';
 
 (async () => {
+	new Config(
+		RABBIT_URL,
+		RABBIT_EVENT_PEOPLE_VHOST,
+		RABBIT_EVENT_PEOPLE_APP_NAME,
+		RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+	);
+	await Config.init();
 	class CustomEventListener extends BaseListener {
 		pay(event: Event) {
 			console.log(
@@ -46,13 +53,6 @@ import {
 		'privateChannel',
 		'resource.custom.private.service',
 	);
-
-	await new Config(
-		RABBIT_URL,
-		RABBIT_EVENT_PEOPLE_VHOST,
-		RABBIT_EVENT_PEOPLE_APP_NAME,
-		RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	).init();
 
 	console.log('****************** Daemon Ready ******************');
 	Daemon.start();

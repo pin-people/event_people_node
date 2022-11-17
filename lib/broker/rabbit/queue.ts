@@ -84,7 +84,7 @@ export class Queue {
 	private queueName(routingKey: string): string {
 		const splitEventName = routingKey.toLowerCase().split('.');
 
-		if (![3, 4].includes(splitEventName.length))
+		if (![3, 4, 5].includes(splitEventName.length))
 			throw new MissingAttributeError(INVALID_ROUTING_KEY);
 
 		const last = splitEventName.length - 1;

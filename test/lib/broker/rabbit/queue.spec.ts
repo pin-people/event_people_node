@@ -84,7 +84,7 @@ describe('broker/rabbit/queue.ts', () => {
 		const consumeSpy = jest
 			.spyOn(mockChannel, 'consume')
 			.mockImplementation(
-				(_queue: string) =>
+				() =>
 					rabbitQueue['callback'](
 						deliveryInfo,
 						payload,

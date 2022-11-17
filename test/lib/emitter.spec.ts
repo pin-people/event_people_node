@@ -29,7 +29,7 @@ describe('lib/emitter.ts', () => {
 			];
 			const produceSpy = jest
 				.spyOn(Config.broker, 'produce')
-				.mockImplementation((_event: Event) => {
+				.mockImplementation(() => {
 					return;
 				});
 
