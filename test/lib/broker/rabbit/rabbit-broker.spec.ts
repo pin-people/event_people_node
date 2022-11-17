@@ -1,4 +1,4 @@
-import amqp, { Connection, Message } from 'amqplib';
+import amqp, { Connection } from 'amqplib';
 import { Config, Event } from '../../../../lib';
 jest.mock('../../../../lib/broker/rabbit/queue');
 import { Queue } from '../../../../lib/broker/rabbit/queue';
@@ -53,7 +53,11 @@ describe('broker/rabbit/rabbit-broker.ts', () => {
 
 		const queueSpySubscribe = jest
 			.spyOn(Queue.prototype, 'subscribe')
-			.mockResolvedValueOnce(new Promise<void>(() => {}));
+			.mockResolvedValueOnce(
+				new Promise<void>(() => {
+					return;
+				}),
+			);
 
 		await broker.consume(eventName, mockSuccessCallback);
 		expect(queueSpySubscribe).toBeCalledTimes(1);
