@@ -63,9 +63,11 @@ describe('lib/listener/listeners-manager.ts', () => {
 
 		const fakeConsume = jest
 			.fn()
-			.mockImplementation((_eventName: string, callback: Function) => {
-				callback();
-			});
+			.mockImplementation(
+				(_eventName: string, callback: (...args: any) => void) => {
+					callback();
+				},
+			);
 
 		const listenerSpy = jest
 			.spyOn(Listener, 'on')

@@ -32,7 +32,7 @@ export class Config {
 	/**
 	 * Initialize getting the broker connection
 	 */
-	public async init(): Promise<void> {
+	public static async init(): Promise<void> {
 		await Config.broker.getConnection();
 	}
 	/**
