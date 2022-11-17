@@ -7,12 +7,13 @@ import {
 } from './constants';
 
 (async () => {
-	await new Config(
+	new Config(
 		RABBIT_URL,
 		RABBIT_EVENT_PEOPLE_VHOST,
 		RABBIT_EVENT_PEOPLE_APP_NAME,
 		RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	).init();
+	);
+	await Config.init();
 
 	const events: Event[] = [];
 	let eventName = 'resource.custom.pay';

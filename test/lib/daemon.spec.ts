@@ -1,6 +1,6 @@
 import { Connection } from 'amqplib';
 import { Config, Daemon, ListenersManager } from '../../lib';
-import { RabbitBroker } from '../../lib/broker/rabbit/rabbit-broker';
+
 import {
 	RABBIT_EVENT_PEOPLE_APP_NAME,
 	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
@@ -9,10 +9,13 @@ import {
 } from '../mock/constants';
 
 describe('lib/daemon.ts', () => {
-	beforeAll(() => {});
-
+	const realProcessExit = process.exit;
 	afterEach(() => {
 		jest.clearAllMocks();
+	});
+
+	afterAll(() => {
+		process.exit = realProcessExit;
 	});
 	it('start() - Should start binding listeners', () => {
 		const bindListenersSpy = jest
@@ -37,12 +40,10 @@ describe('lib/daemon.ts', () => {
 		const makeItExit = () => process.exit(0);
 
 		const stopSpy = jest.spyOn(Daemon, 'stop');
-		const exitSpy = jest
-			.spyOn(process, 'exit')
-			.mockImplementation((_code?: number) => {
-				Daemon.stop();
-				throw new Error('Exited');
-			});
+		const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
+			Daemon.stop();
+			throw new Error('Exited');
+		});
 
 		Daemon.bindSignals();
 
