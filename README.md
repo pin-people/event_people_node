@@ -17,7 +17,7 @@ As of today EventPeople uses RabbitMQ as its datasource, but there are plans to 
 
 Add this line to your application's `package.json`:
 
-```
+```console
 yarn add event_people
 ```
 
@@ -33,7 +33,10 @@ or
 
 Add then run this command to install dependencies:
 
-    $ yarn install
+```console
+yarn install
+
+```
 
 And set config vars:
 
