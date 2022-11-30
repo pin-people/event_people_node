@@ -1,14 +1,11 @@
 import { Config } from '../../lib';
 import { Connection } from 'amqplib';
-
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from '../mock/constants';
+import { setEnvs } from '../../example/set-envs';
 
 describe('lib/config.ts', () => {
+	beforeAll(() => {
+		setEnvs();
+	});
 	afterEach(() => {
 		jest.clearAllMocks();
 	});
@@ -18,12 +15,7 @@ describe('lib/config.ts', () => {
 			close: jest.fn(),
 		};
 
-		new Config(
-			RABBIT_URL,
-			RABBIT_EVENT_PEOPLE_VHOST,
-			RABBIT_EVENT_PEOPLE_APP_NAME,
-			RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-		);
+		new Config();
 
 		const getConnectionSpy = jest
 			.spyOn(Config.broker, 'getConnection')
@@ -33,7 +25,7 @@ describe('lib/config.ts', () => {
 				);
 			});
 
-		Config.init();
+		await Config.init();
 
 		expect(getConnectionSpy).toBeCalledTimes(1);
 		expect(Config.broker.getConnection()).resolves.toStrictEqual(
@@ -42,12 +34,7 @@ describe('lib/config.ts', () => {
 	});
 
 	it('getBroker() - Should return correct broker', () => {
-		new Config(
-			RABBIT_URL,
-			RABBIT_EVENT_PEOPLE_VHOST,
-			RABBIT_EVENT_PEOPLE_APP_NAME,
-			RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-		);
+		new Config();
 
 		const broker = Config.getBroker();
 

@@ -1,15 +1,13 @@
 import { Connection } from 'amqplib';
+import { setEnvs } from '../../example/set-envs';
 import { Config, Daemon, ListenersManager } from '../../lib';
 
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from '../mock/constants';
-
 describe('lib/daemon.ts', () => {
-	const realProcessExit = process.exit;
+	let realProcessExit: (code: number) => never;
+	beforeAll(() => {
+		setEnvs();
+		realProcessExit = process.exit;
+	});
 	afterEach(() => {
 		jest.clearAllMocks();
 	});
@@ -56,12 +54,7 @@ describe('lib/daemon.ts', () => {
 	});
 
 	it('stop() - should call broker close connection', async () => {
-		new Config(
-			RABBIT_URL,
-			RABBIT_EVENT_PEOPLE_VHOST,
-			RABBIT_EVENT_PEOPLE_APP_NAME,
-			RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-		);
+		new Config();
 		const conn = {} as Connection;
 		Daemon.config.broker.connection = conn;
 

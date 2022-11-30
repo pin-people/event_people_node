@@ -24,7 +24,8 @@ export class Topic {
 	 * @param {EVent} event - message event that will be produced
 	 */
 	async produce(event: Event): Promise<void> {
-		if (!this.getTopic() || !this.topic.length)
+		console.log('sdlkasdlasdlasdasd', this.topic);
+		if (!this.getTopic() || this.topic.length < 1)
 			throw new MissingAttributeError('topic');
 
 		const content = Buffer.from(JSON.stringify(event.payload()));

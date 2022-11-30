@@ -1,19 +1,10 @@
 import { Config, Daemon, Event, BaseListener, ListenersManager } from '../lib';
+import { setEnvs } from './set-envs';
 
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from './constants';
+setEnvs();
 
 (async () => {
-	new Config(
-		RABBIT_URL,
-		RABBIT_EVENT_PEOPLE_VHOST,
-		RABBIT_EVENT_PEOPLE_APP_NAME,
-		RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	);
+	new Config();
 	await Config.init();
 	class CustomEventListener extends BaseListener {
 		pay(event: Event) {
@@ -61,7 +52,7 @@ import {
 		console.log(`
 			Library Running
 			\nList of Listenning channels:\n[${ListenersManager.getListenerConfigurations().map(
-				(config) => config.routingKey,
+				(config) => config.eventName,
 			)}]
 		`);
 	}, 5000);

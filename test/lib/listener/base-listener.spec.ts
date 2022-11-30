@@ -1,4 +1,5 @@
 import { Channel, Message } from 'amqplib';
+import { setEnvs } from '../../../example/set-envs';
 import { Config } from '../../../lib';
 
 import {
@@ -6,21 +7,14 @@ import {
 	ListenerConfig,
 	ListenersManager,
 } from '../../../lib/listeners';
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from '../../mock/constants';
+
 import { mockChannel, MockContext } from '../../mock/rabbit';
 
 describe('lib/listener/base-listener.ts', () => {
-	new Config(
-		RABBIT_URL,
-		RABBIT_EVENT_PEOPLE_VHOST,
-		RABBIT_EVENT_PEOPLE_APP_NAME,
-		RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	);
+	beforeAll(() => {
+		setEnvs();
+		new Config();
+	});
 
 	afterEach(() => {
 		ListenersManager.listenerConfigurations = [];
@@ -41,12 +35,12 @@ describe('lib/listener/base-listener.ts', () => {
 				{
 					listener: CustomListener,
 					method: 'someMethod',
-					routingKey: `${eventName}.all`,
+					eventName: `${eventName}.all`,
 				},
 				{
 					listener: CustomListener,
 					method: 'someMethod',
-					routingKey: `${eventName}.${Config.APP_NAME}`,
+					eventName: `${eventName}.${Config.APP_NAME}`,
 				},
 			];
 
@@ -58,14 +52,15 @@ describe('lib/listener/base-listener.ts', () => {
 			CustomListener.bindEvent('someMethod', eventName);
 
 			const listenerConfigs = ListenersManager.getListenerConfigurations();
+
 			expect(listenerConfigs.length).toBe(2);
-			expect(listenerConfigs).toStrictEqual(expectedConfigs);
 			expect(registerSpy).toBeCalledTimes(2);
+			expect(expectedConfigs).toStrictEqual(listenerConfigs);
 			expectedConfigs.forEach((config: ListenerConfig, index: number) => {
 				expect(registerSpy).toHaveBeenNthCalledWith(index + 1, {
 					listener: config.listener,
 					method: config.method,
-					routingKey: config.routingKey,
+					eventName: config.eventName,
 				});
 			});
 		});
@@ -81,13 +76,13 @@ describe('lib/listener/base-listener.ts', () => {
 			const expectedEventName = eventName
 				.split('.')
 				.splice(0, 4)
-				.concat(Config.APP_NAME)
+				.concat()
 				.join('.');
 
 			const expectedConfig: ListenerConfig = {
 				listener: CustomListener,
 				method: 'anotherMethod',
-				routingKey: expectedEventName,
+				eventName: expectedEventName,
 			};
 
 			const registerSpy = jest.spyOn(
@@ -152,25 +147,5 @@ describe('lib/listener/base-listener.ts', () => {
 		listener.makeReject();
 
 		expect(contextSpy).toBeCalledTimes(1);
-	});
-
-	describe('fixedName', () => {
-		it('- should return correct queue name "custom.source.action.all"', () => {
-			const eventName = 'custom.source.action';
-			const postFix = 'all';
-
-			const fixedName = BaseListener['fixedEventName'](eventName, postFix);
-
-			expect(fixedName).toBe(`${eventName}.${postFix}`);
-		});
-
-		it('- should return correct queue name custom.source.action.destination', () => {
-			const eventName = 'custom.source.action.destination';
-			const postFix = 'all';
-
-			const fixedName = BaseListener['fixedEventName'](eventName, postFix);
-
-			expect(fixedName).toBe(`${eventName}.${postFix}`);
-		});
 	});
 });

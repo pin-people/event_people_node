@@ -22,7 +22,7 @@ describe('lib/listener/listeners-manager.ts', () => {
 	});
 
 	it('bindAllListeners() - should call listeners method for each listener config', () => {
-		const routingKey = 'some.custom.action.destination';
+		const eventName = 'some.custom.action.destination';
 
 		class CustomListener1 extends BaseListener {
 			constructor() {
@@ -52,12 +52,12 @@ describe('lib/listener/listeners-manager.ts', () => {
 			{
 				listener: CustomListener1,
 				method: 'makeSuccess',
-				routingKey: routingKey,
+				eventName,
 			},
 			{
 				listener: CustomListener2,
 				method: 'makeAnotherSuccess',
-				routingKey: routingKey,
+				eventName,
 			},
 		];
 
@@ -92,7 +92,7 @@ describe('lib/listener/listeners-manager.ts', () => {
 		const config: ListenerConfig = {
 			listener: BaseListener,
 			method: 'success',
-			routingKey: 'some.new.routing',
+			eventName: 'some.new.routing',
 		};
 
 		ListenersManager.registerListenerConfiguration(config);
@@ -104,7 +104,7 @@ describe('lib/listener/listeners-manager.ts', () => {
 		const config: ListenerConfig = {
 			listener: BaseListener,
 			method: 'success',
-			routingKey: 'some.new.routing',
+			eventName: 'some.new.routing',
 		};
 
 		ListenersManager.listenerConfigurations = [config];

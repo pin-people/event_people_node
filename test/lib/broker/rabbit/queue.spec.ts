@@ -1,34 +1,26 @@
-import { MissingAttributeError } from '../../../../lib/utils/errors';
 import { Channel, Message } from 'amqplib';
 import { Config, Context, Event } from '../../../../lib';
 import { Queue } from '../../../../lib/broker/rabbit/queue';
 import { Topic } from '../../../../lib/broker/rabbit/topic';
 import { DeliveryInfo } from '../../../../lib/listeners';
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from '../../../mock/constants';
 import { mockChannel, mockSuccessCallback } from '../../../mock/rabbit';
+import { setEnvs } from '../../../../example/set-envs';
 
 describe('broker/rabbit/queue.ts', () => {
-	const routingKey = 'message.origin.custom.all';
-	const queueName = `${RABBIT_EVENT_PEOPLE_APP_NAME}-${routingKey}`;
-	const makeAssertQueueSpy = (queueName: string) =>
-		jest.spyOn(mockChannel, 'assertQueue').mockResolvedValueOnce({
-			queue: queueName,
-			messageCount: 0,
-			consumerCount: 1,
-		});
+	let routingKey: string, queueName: string;
+	let makeAssertQueueSpy: (queueName: string) => any;
 
 	beforeAll(() => {
-		new Config(
-			RABBIT_URL,
-			RABBIT_EVENT_PEOPLE_VHOST,
-			RABBIT_EVENT_PEOPLE_APP_NAME,
-			RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-		);
+		setEnvs();
+		new Config();
+		routingKey = 'message.origin.custom.all';
+		queueName = `${process.env.RABBIT_EVENT_PEOPLE_APP_NAME}-${routingKey}`;
+		makeAssertQueueSpy = (queueName: string) =>
+			jest.spyOn(mockChannel, 'assertQueue').mockResolvedValueOnce({
+				queue: queueName,
+				messageCount: 0,
+				consumerCount: 1,
+			});
 	});
 	afterAll(() => {
 		jest.clearAllMocks();
@@ -39,7 +31,7 @@ describe('broker/rabbit/queue.ts', () => {
 
 		const topic = new Topic(
 			mockChannel as Channel,
-			RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+			String(process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME),
 		);
 
 		const assertedQueueSpy = makeAssertQueueSpy(queueName);
@@ -57,7 +49,7 @@ describe('broker/rabbit/queue.ts', () => {
 		expect(bindQueueSpy).toBeCalledTimes(1);
 		expect(bindQueueSpy).toHaveBeenCalledWith(
 			queueName,
-			RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+			String(process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME),
 			routingKey,
 		);
 		expect(consumeSpy).toBeCalledTimes(1);
@@ -67,7 +59,7 @@ describe('broker/rabbit/queue.ts', () => {
 	it('callback() - should run consume, and callback correctly, then call the trigger method', async () => {
 		const topic = new Topic(
 			mockChannel as Channel,
-			RABBIT_EVENT_PEOPLE_TOPIC_NAME,
+			String(process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME),
 		);
 		const rabbitQueue = new Queue(mockChannel as Channel, topic);
 		makeAssertQueueSpy(queueName);
@@ -107,33 +99,5 @@ describe('broker/rabbit/queue.ts', () => {
 
 		expect(consumeSpy).toBeCalled();
 		expect(triggerMethod).toBeCalled();
-	});
-
-	describe('queueName', () => {
-		let queue: Queue;
-		beforeAll(() => {
-			const topic = new Topic(
-				mockChannel as Channel,
-				RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-			);
-			queue = new Queue(mockChannel as Channel, topic);
-		});
-
-		it('queueName() - should throw error due to incorrect routingKey pattern', () => {
-			const routingKey = 'resource.custom';
-			try {
-				queue['queueName'](routingKey);
-			} catch (error) {
-				expect(error).toBeInstanceOf(MissingAttributeError);
-			}
-		});
-
-		it('queueName() - should mount queue name correctly with "all" suffix', () => {
-			const routingKey = 'resource.custom.pay';
-			const queueName = `${Config.APP_NAME}-${routingKey}`;
-
-			const queueNameResult = queue['queueName'](routingKey);
-			expect(queueNameResult).toBe(queueName + '.all');
-		});
 	});
 });

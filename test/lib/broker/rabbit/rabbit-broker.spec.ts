@@ -4,26 +4,16 @@ jest.mock('../../../../lib/broker/rabbit/queue');
 import { Queue } from '../../../../lib/broker/rabbit/queue';
 import { RabbitBroker } from '../../../../lib/broker/rabbit/rabbit-broker';
 import { Topic } from '../../../../lib/broker/rabbit/topic';
-
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from '../../../mock/constants';
 import { mockConnection, mockSuccessCallback } from '../../../mock/rabbit';
+import { setEnvs } from '../../../../example/set-envs';
 
 describe('broker/rabbit/rabbit-broker.ts', () => {
-	const broker = new RabbitBroker();
+	let broker: RabbitBroker;
 
-	beforeEach(() => {
-		new Config(
-			RABBIT_URL,
-			RABBIT_EVENT_PEOPLE_VHOST,
-			RABBIT_EVENT_PEOPLE_APP_NAME,
-			RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-			broker,
-		);
+	beforeAll(() => {
+		setEnvs();
+		broker = new RabbitBroker();
+		new Config(broker);
 	});
 	afterAll(async () => {
 		await broker.closeConnection();
