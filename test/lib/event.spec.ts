@@ -1,19 +1,12 @@
+import { setEnvs } from '../../example/set-envs';
 import { Config, Event } from '../../lib';
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from '../mock/constants';
 
 describe('lib/event.ts', () => {
 	beforeAll(() => {
-		new Config(
-			RABBIT_URL,
-			RABBIT_EVENT_PEOPLE_VHOST,
-			RABBIT_EVENT_PEOPLE_APP_NAME,
-			RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-		);
+		setEnvs();
+	});
+	beforeAll(() => {
+		new Config();
 	});
 
 	afterAll(() => {
@@ -81,12 +74,21 @@ describe('lib/event.ts', () => {
 		});
 	});
 
-	it('fixName() - should add suffix .all for event name', () => {
-		const name = 'some.custom.action';
-		const event = new Event(name, {});
+	describe('fixedEventName', () => {
+		it('fixEventName() - should add suffix .all for event name', () => {
+			const name = 'some.custom.action';
 
-		event['fixName']();
+			const fixedEventName = Event.fixedEventName(name, 'all');
 
-		expect(event.getName()).toBe(`${name}.all`);
+			expect(fixedEventName).toBe(`${name}.all`);
+		});
+
+		it('fixEventName() - should not add any suffix for event name', () => {
+			const name = 'some.custom.action.dest';
+
+			const fixedEventName = Event.fixedEventName(name, 'all');
+
+			expect(fixedEventName).toBe(`${name}`);
+		});
 	});
 });

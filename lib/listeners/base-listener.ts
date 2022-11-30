@@ -1,6 +1,7 @@
 import { Context } from '../context';
 import { ListenersManager } from './listeners-manager';
 import { Config } from '../config';
+import { Event } from '..';
 
 export type DeliveryInfo = {
 	deliveryTag: string;
@@ -10,7 +11,7 @@ export type DeliveryInfo = {
 export type ListenerConfig = {
 	listener: typeof BaseListener;
 	method: string;
-	routingKey: string;
+	eventName: string;
 };
 
 export class BaseListener {
@@ -32,19 +33,19 @@ export class BaseListener {
 			ListenersManager.registerListenerConfiguration({
 				listener: this,
 				method,
-				routingKey: this.fixedEventName(eventName, 'all'),
+				eventName: Event.fixedEventName(eventName, 'all'),
 			});
 
 			ListenersManager.registerListenerConfiguration({
 				listener: this,
 				method,
-				routingKey: this.fixedEventName(eventName, appName),
+				eventName: Event.fixedEventName(eventName, appName),
 			});
 		} else
 			ListenersManager.registerListenerConfiguration({
 				listener: this,
 				method,
-				routingKey: this.fixedEventName(eventName, appName),
+				eventName: Event.fixedEventName(eventName, appName),
 			});
 	}
 
@@ -70,24 +71,5 @@ export class BaseListener {
 	 */
 	public reject(): void {
 		this.context.reject();
-	}
-
-	/**
-	 * Normalizes the event name based on the size of eventName
-	 * @param {string} eventName
-	 * @param {string} postFix
-	 * @returns string
-	 */
-	private static fixedEventName(eventName: string, postFix: string): string {
-		let routingKey = eventName;
-		const split = eventName.split('.');
-		const parts = split.length;
-
-		if (parts <= 3) routingKey = `${eventName}.${postFix}`;
-		else if (parts === 4) {
-			const baseName = `${split.splice(0, 4).join('.')}`;
-			routingKey = `${baseName}.${postFix}`;
-		}
-		return routingKey;
 	}
 }

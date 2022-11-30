@@ -1,18 +1,10 @@
 import { Config, Emitter, Event } from '../lib';
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from './constants';
+import { setEnvs } from './set-envs';
+
+setEnvs();
 
 (async () => {
-	new Config(
-		RABBIT_URL,
-		RABBIT_EVENT_PEOPLE_VHOST,
-		RABBIT_EVENT_PEOPLE_APP_NAME,
-		RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	);
+	new Config();
 	await Config.init();
 
 	const events: Event[] = [];

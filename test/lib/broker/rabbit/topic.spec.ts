@@ -2,22 +2,13 @@ import { Channel } from 'amqplib';
 import { Config, Event } from '../../../../lib';
 import { Topic } from '../../../../lib/broker/rabbit/topic';
 import { MissingAttributeError } from '../../../../lib/utils/errors';
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from '../../../mock/constants';
 import { mockChannel } from '../../../mock/rabbit';
+import { setEnvs } from '../../../../example/set-envs';
 
 describe('broker/rabbit/topic', () => {
 	beforeAll(() => {
-		new Config(
-			RABBIT_URL,
-			RABBIT_EVENT_PEOPLE_VHOST,
-			RABBIT_EVENT_PEOPLE_APP_NAME,
-			RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-		);
+		setEnvs();
+		new Config();
 	});
 
 	afterAll(() => {

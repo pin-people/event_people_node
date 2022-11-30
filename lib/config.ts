@@ -13,17 +13,11 @@ export class Config {
 	 *Setup for the Message broker that will handle events implementing BaseBroker
 	 * @param {BaseBroker} broker
 	 */
-	constructor(
-		url: string,
-		vhost: string,
-		appName: string,
-		topicName: string,
-		broker?: BaseBroker,
-	) {
-		Config.URL = url || 'amqp://admin:admin@127.0.0.1:5672';
-		Config.VHOST_NAME = vhost || 'event-people';
-		Config.APP_NAME = appName || 'event-people-node';
-		Config.TOPIC_NAME = topicName || 'event-people-exchange';
+	constructor(broker?: BaseBroker) {
+		Config.URL = process.env.RABBIT_URL;
+		Config.VHOST_NAME = process.env.RABBIT_EVENT_PEOPLE_VHOST;
+		Config.APP_NAME = process.env.RABBIT_EVENT_PEOPLE_APP_NAME;
+		Config.TOPIC_NAME = process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME;
 		Config.FULL_URL = `${Config.URL}/${Config.VHOST_NAME}`;
 
 		Config.broker = broker || new RabbitBroker();

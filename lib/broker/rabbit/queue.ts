@@ -5,10 +5,7 @@ import { Topic } from './topic';
 import { Config } from '../../config';
 import { Context } from '@lib/context';
 import { RabbitContext } from './rabbit-context';
-import { MissingAttributeError } from '../../../lib/utils/errors';
 
-export const INVALID_ROUTING_KEY =
-	'routingKey should match resource.origin.action or resource.origin.action.dest patterns';
 export class Queue {
 	private config = Config;
 	constructor(
@@ -27,9 +24,9 @@ export class Queue {
 		routingKey: string,
 		method: (event: Event, context: Context) => void,
 	): Promise<void> {
-		const name = this.queueName(routingKey);
+		const queueName = this.queueName(routingKey);
 
-		const assertedQueue = await this.channel.assertQueue(name, {
+		const assertedQueue = await this.channel.assertQueue(queueName, {
 			exclusive: false,
 			durable: true,
 		});
@@ -42,7 +39,7 @@ export class Queue {
 			routingKey,
 		);
 
-		await this.channel.consume(name, (message: ConsumeMessage) => {
+		await this.channel.consume(queueName, (message: ConsumeMessage) => {
 			const eventPayload: Record<string, any> = JSON.parse(
 				String(message.content),
 			);
@@ -70,8 +67,10 @@ export class Queue {
 		message: Message,
 		method: (event: Event, context: Context) => void,
 	): void {
-		const eventName = deliveryInfo.routingKey;
+		const eventName = Event.fixedEventName(deliveryInfo.routingKey, 'all');
+
 		const event = new Event(eventName, payload);
+
 		const context = new RabbitContext(this.channel, message);
 		method(event, context);
 	}
@@ -82,15 +81,8 @@ export class Queue {
 	 * @returns {string} string
 	 */
 	private queueName(routingKey: string): string {
-		const splitEventName = routingKey.toLowerCase().split('.');
-
-		if (![3, 4, 5].includes(splitEventName.length))
-			throw new MissingAttributeError(INVALID_ROUTING_KEY);
-
-		const last = splitEventName.length - 1;
-		if (splitEventName[last] !== 'all')
-			return `${this.config.APP_NAME.toLowerCase()}-${routingKey}.all`;
-
-		return `${this.config.APP_NAME.toLowerCase()}-${routingKey}`;
+		const fixed = Event.fixedEventName(routingKey, 'all');
+		const name = `${Config.APP_NAME}-${fixed}`.toLowerCase();
+		return name;
 	}
 }

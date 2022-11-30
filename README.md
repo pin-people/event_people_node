@@ -41,10 +41,10 @@ yarn install
 And set config vars:
 
 ```bash
-export const RABBIT_URL = 'amqp://guest:guest@localhost:5672'
-export const RABBIT_EVENT_PEOPLE_APP_NAME = 'service_name'
-export const RABBIT_EVENT_PEOPLE_VHOST = 'event_people'
-export const RABBIT_EVENT_PEOPLE_TOPIC_NAME = 'event_people'
+process.env.RABBIT_URL = 'amqp://guest:guest@localhost:5672'
+process.env.RABBIT_EVENT_PEOPLE_APP_NAME = 'service_name'
+process.env.RABBIT_EVENT_PEOPLE_VHOST = 'event_people'
+process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME = 'event_people'
 ```
 
 ## Usage
@@ -61,12 +61,8 @@ It has 2 attributes `name` and `payload`:
 ```typescript
 import { Event } from 'event_people';
 
-await new Config(
-	RABBIT_URL,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-).init();
+new Config();
+await Config.init();
 
 const event_name = 'user.users.create';
 const body = { id: 42, name: 'John Doe', age: 35 };
@@ -86,12 +82,8 @@ You can emit events on your project passing an `eventPeople.Event` instance to t
 ```typescript
 import { Config, Emitter, Event } from 'eventPeople';
 
-await new Config(
-	RABBIT_URL,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-).init();
+new Config();
+await Config.init();
 
 const event_name = 'receipt.payments.pay.users';
 const body = { amount: 350.76 };
@@ -130,12 +122,8 @@ import { Base } from 'eventPeople.listeners';
 // counterpart: 'payment.payments.pay.all'
 const event_name = 'payment.payments.pay';
 
-await new Config(
-	RABBIT_URL,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-).init();
+new Config();
+await Config.init();
 
 Listener.on(event_name, (event: Event, context: Base) => {
 	console.log('');
@@ -215,12 +203,8 @@ class CustomEventListener extends BaseListeners {
 	}
 }
 
-await new Config(
-	RABBIT_URL,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-).init();
+new Config();
+await Config.init();
 
 CustomEventListener.bindEvent('resource.custom.pay', this.pay);
 CustomEventListener.bindEvent('resource.custom.receive', this.receive);
@@ -278,12 +262,8 @@ CustomEventListener.bindEvent(
 	this.privateChannel,
 );
 
-await new Config(
-	RABBIT_URL,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-).init();
+new Config();
+await Config.init();
 
 console.log('****************** Daemon Ready ******************');
 

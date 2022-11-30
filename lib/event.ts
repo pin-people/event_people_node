@@ -1,4 +1,8 @@
 import { Config } from './config';
+import { MissingAttributeError } from './utils/errors';
+
+export const INVALID_ROUTING_KEY =
+	'routingKey should match resource.origin.action or resource.origin.action.dest patterns';
 
 export type EventHeaders = {
 	appName: string;
@@ -68,9 +72,21 @@ export class Event {
 	}
 
 	/**
-	 * Adds a suffix 'all' for event name wich has length != than 3
+	 * Normalizes the event name based on the size of eventName
+	 * @param {string} eventName
+	 * @param {string} postFix
+	 * @returns string
 	 */
-	private fixName(): void {
-		if (this.name.split('.').length < 4) this.name = `${this.name}.all`;
+	public static fixedEventName(eventName: string, postFix: string): string {
+		const split = eventName.split('.');
+		const parts = split.length;
+
+		if (parts > 3) return eventName;
+		else {
+			const baseName = `${split.splice(0, 3).join('.')}`;
+			eventName = `${baseName}.${postFix}`;
+		}
+
+		return eventName;
 	}
 }

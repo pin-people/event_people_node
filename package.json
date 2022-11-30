@@ -1,5 +1,5 @@
 {
-	"name": "event_people_node7",
+	"name": "event_people",
 	"version": "0.0.1",
 	"description": "Tool to simplify the communication of event based services.",
 	"main": "dist/lib/index.js",

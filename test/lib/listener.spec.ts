@@ -1,20 +1,13 @@
+import { setEnvs } from '../../example/set-envs';
 import { Config, Listener, MissingAttributeError } from '../../lib';
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from '../mock/constants';
 
 describe('lib/listener.ts', () => {
 	describe('On()', () => {
 		beforeAll(() => {
-			new Config(
-				RABBIT_URL,
-				RABBIT_EVENT_PEOPLE_VHOST,
-				RABBIT_EVENT_PEOPLE_APP_NAME,
-				RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-			);
+			setEnvs();
+		});
+		beforeAll(() => {
+			new Config();
 		});
 		afterAll(() => {
 			jest.clearAllMocks();
