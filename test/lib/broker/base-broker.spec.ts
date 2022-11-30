@@ -7,16 +7,24 @@ describe('broker/base-broker.ts', () => {
 	});
 
 	class mockContext implements Context {
-		success(): void {}
-		fail(): void {}
-		reject(): void {}
+		success(): void {
+			return;
+		}
+		fail(): void {
+			return;
+		}
+		reject(): void {
+			return;
+		}
 	}
 
 	class Broker implements BaseBroker {
 		consumers: any[];
 		connection: Connection;
 
-		public closeConnection(): void {}
+		public closeConnection(): void {
+			return;
+		}
 		public consume(
 			eventName: string,
 			callback: (event: Event, context: Context) => void,
@@ -31,7 +39,9 @@ describe('broker/base-broker.ts', () => {
 			return this.connection;
 		}
 
-		public produce(): void {}
+		public produce(): void {
+			return;
+		}
 	}
 
 	it('Should be defined', () => {

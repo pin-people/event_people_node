@@ -1,5 +1,4 @@
 import { Config } from './config';
-import { MissingAttributeError } from './utils/errors';
 
 export const INVALID_ROUTING_KEY =
 	'routingKey should match resource.origin.action or resource.origin.action.dest patterns';
