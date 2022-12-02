@@ -1,16 +1,20 @@
-import { Channel, Message } from 'amqplib';
+import { Channel, Connection, Message } from 'amqplib';
 import { Config, Context, Event } from '../../../../lib';
 import { Queue } from '../../../../lib/broker/rabbit/queue';
 import { Topic } from '../../../../lib/broker/rabbit/topic';
 import { DeliveryInfo } from '../../../../lib/listeners';
-import { mockChannel, mockSuccessCallback } from '../../../mock/rabbit';
+import {
+	mockChannel,
+	mockConnection,
+	mockSuccessCallback,
+} from '../../../mock/rabbit';
 import { setEnvs } from '../../../../example/set-envs';
 
 describe('broker/rabbit/queue.ts', () => {
 	let routingKey: string, queueName: string;
 	let makeAssertQueueSpy: (queueName: string) => any;
 
-	beforeAll(() => {
+	beforeAll(async () => {
 		setEnvs();
 		new Config();
 		routingKey = 'message.origin.custom.all';
@@ -21,6 +25,14 @@ describe('broker/rabbit/queue.ts', () => {
 				messageCount: 0,
 				consumerCount: 1,
 			});
+
+		jest
+			.spyOn(Config.broker, 'getConnection')
+			.mockImplementationOnce(() =>
+				Promise.resolve(mockConnection as Connection),
+			);
+
+		await Config.init();
 	});
 	afterAll(() => {
 		jest.clearAllMocks();

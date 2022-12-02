@@ -10,10 +10,18 @@ import { setEnvs } from '../../../../example/set-envs';
 describe('broker/rabbit/rabbit-broker.ts', () => {
 	let broker: RabbitBroker;
 
-	beforeAll(() => {
+	beforeAll(async () => {
 		setEnvs();
 		broker = new RabbitBroker();
 		new Config(broker);
+
+		jest
+			.spyOn(Config.broker, 'getConnection')
+			.mockImplementationOnce(() =>
+				Promise.resolve(mockConnection as Connection),
+			);
+
+		await Config.init();
 	});
 	afterAll(async () => {
 		await broker.closeConnection();
