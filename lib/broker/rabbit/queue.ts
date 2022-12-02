@@ -81,8 +81,8 @@ export class Queue {
 	 * @returns {string} string
 	 */
 	private queueName(routingKey: string): string {
-		const fixed = Event.fixedEventName(routingKey, 'all');
-		const name = `${Config.APP_NAME}-${fixed}`.toLowerCase();
+		// const fixed = Event.fixedEventName(routingKey, 'all');
+		const name = `${Config.APP_NAME}-${routingKey}`.toLowerCase();
 		return name;
 	}
 }

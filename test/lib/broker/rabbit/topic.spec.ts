@@ -1,14 +1,23 @@
-import { Channel } from 'amqplib';
+import { Channel, Connection } from 'amqplib';
 import { Config, Event } from '../../../../lib';
 import { Topic } from '../../../../lib/broker/rabbit/topic';
 import { MissingAttributeError } from '../../../../lib/utils/errors';
-import { mockChannel } from '../../../mock/rabbit';
+import { mockChannel, mockConnection } from '../../../mock/rabbit';
 import { setEnvs } from '../../../../example/set-envs';
 
 describe('broker/rabbit/topic', () => {
-	beforeAll(() => {
+	beforeAll(async () => {
 		setEnvs();
+
 		new Config();
+
+		jest
+			.spyOn(Config.broker, 'getConnection')
+			.mockImplementationOnce(() =>
+				Promise.resolve(mockConnection as Connection),
+			);
+
+		await Config.init();
 	});
 
 	afterAll(() => {

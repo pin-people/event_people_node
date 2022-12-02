@@ -1,7 +1,5 @@
 import { Config } from './config';
-
-export const INVALID_ROUTING_KEY =
-	'routingKey should match resource.origin.action or resource.origin.action.dest patterns';
+import { INVALID_EVENT_NAME, MissingAttributeError } from './utils/errors';
 
 export type EventHeaders = {
 	appName: string;
@@ -79,6 +77,8 @@ export class Event {
 	public static fixedEventName(eventName: string, postFix: string): string {
 		const split = eventName.split('.');
 		const parts = split.length;
+
+		if (parts < 3) throw new MissingAttributeError(INVALID_EVENT_NAME);
 
 		if (parts > 3) return eventName;
 		else {

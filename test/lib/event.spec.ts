@@ -1,5 +1,10 @@
 import { setEnvs } from '../../example/set-envs';
-import { Config, Event } from '../../lib';
+import {
+	Config,
+	Event,
+	INVALID_EVENT_NAME,
+	MissingAttributeError,
+} from '../../lib';
 
 describe('lib/event.ts', () => {
 	beforeAll(() => {
@@ -89,6 +94,14 @@ describe('lib/event.ts', () => {
 			const fixedEventName = Event.fixedEventName(name, 'all');
 
 			expect(fixedEventName).toBe(`${name}`);
+		});
+
+		it('fixEventName() - Should throw Missisng Attribute error due to event name pattern', () => {
+			const name = 'some.action';
+
+			expect(() => Event.fixedEventName(name, 'all')).toThrowError(
+				new MissingAttributeError(INVALID_EVENT_NAME),
+			);
 		});
 	});
 });

@@ -4,7 +4,6 @@ import { setEnvs } from './set-envs';
 setEnvs();
 
 (async () => {
-	new Config();
 	await Config.init();
 
 	const events: Event[] = [];

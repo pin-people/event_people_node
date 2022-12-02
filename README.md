@@ -26,7 +26,7 @@ or
 ```yaml
   "Dependencies": {
     ...
-    "event_people": "^0.0.1"
+    "event_people": "^1.0.0"
     ...
   }
 ```
@@ -41,10 +41,19 @@ yarn install
 And set config vars:
 
 ```bash
-process.env.RABBIT_URL = 'amqp://guest:guest@localhost:5672'
-process.env.RABBIT_EVENT_PEOPLE_APP_NAME = 'service_name'
-process.env.RABBIT_EVENT_PEOPLE_VHOST = 'event_people'
-process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME = 'event_people'
+export RABBIT_URL = 'amqp://guest:guest@localhost:5672'
+export RABBIT_EVENT_PEOPLE_APP_NAME = 'service_name'
+export RABBIT_EVENT_PEOPLE_VHOST = 'event_people'
+export RABBIT_EVENT_PEOPLE_TOPIC_NAME = 'event_people'
+```
+
+or directly into javascript:
+
+```javascript
+process.env.RABBIT_URL = 'amqp://guest:guest@localhost:5672';
+process.env.RABBIT_EVENT_PEOPLE_APP_NAME = 'service_name';
+process.env.RABBIT_EVENT_PEOPLE_VHOST = 'event_people';
+process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME = 'event_people';
 ```
 
 ## Usage
@@ -62,7 +71,6 @@ It has 2 attributes `name` and `payload`:
 import { Event } from 'event_people';
 
 new Config();
-await Config.init();
 
 const event_name = 'user.users.create';
 const body = { id: 42, name: 'John Doe', age: 35 };
@@ -80,10 +88,9 @@ There are 3 main interfaces to use `EventPeople` on your project:
 You can emit events on your project passing an `eventPeople.Event` instance to the `eventPeople.Emitter.trigger` method. Doing this other services that are subscribed to these events will receive it.
 
 ```typescript
-import { Config, Emitter, Event } from 'eventPeople';
+import { Config, Emitter, Event } from 'event_people';
 
 new Config();
-await Config.init();
 
 const event_name = 'receipt.payments.pay.users';
 const body = { amount: 350.76 };
@@ -115,7 +122,7 @@ Other important aspect of event consumming is the result of the processing we pr
 Given you want to consume a single event inside your project you can use the `eventPeople.Listener.on` method. It consumes a single event, given there are events available to be consumed with the given name pattern.
 
 ```typescript
-import { Config, Event, Listener } from 'eventPeople';
+import { Config, Event, Listener } from 'event_people';
 import { Base } from 'eventPeople.listeners';
 
 // 3 words event names will be replaced by its 4 word wildcard
@@ -123,7 +130,6 @@ import { Base } from 'eventPeople.listeners';
 const event_name = 'payment.payments.pay';
 
 new Config();
-await Config.init();
 
 Listener.on(event_name, (event: Event, context: Base) => {
 	console.log('');
@@ -139,7 +145,7 @@ Config.close_connection();
 You can also receive all available messages using a loop:
 
 ```typescript
-import { Config, Event, Listener } from 'eventPeople';
+import { Config, Event, Listener } from 'event_people';
 import { Base } from 'eventPeople.listeners';
 
 const event_name = 'payment.payments.pay.all';
@@ -170,7 +176,7 @@ Config.close_connection();
 If your project needs to handle lots of events you can extend `eventPeople.BaseListeners` class to bind how many events you need to instance methods, so whenever an event is received the method will be called automatically.
 
 ```typescript
-import { Event, BaseListeners } from 'eventPeople';
+import { Event, BaseListeners } from 'event_people';
 
 class CustomEventListener extends BaseListeners {
 	pay(event: Event): void {
@@ -204,7 +210,6 @@ class CustomEventListener extends BaseListeners {
 }
 
 new Config();
-await Config.init();
 
 CustomEventListener.bindEvent('resource.custom.pay', this.pay);
 CustomEventListener.bindEvent('resource.custom.receive', this.receive);
@@ -221,7 +226,7 @@ CustomEventListener.bindEvent(
 If you have the need to create a deamon to consume messages on background you can use the `eventPeople.Daemon.start` method to do so with ease. Just remember to define or import all the event bindings before starting the daemon.
 
 ```typescript
-import { Daemon, Event, BaseListeners } from 'eventPeople';
+import { Daemon, Event, BaseListeners } from 'event_people';
 
 class CustomEventListener extends BaseListeners {
 	pay(event: Event): void {
@@ -263,7 +268,6 @@ CustomEventListener.bindEvent(
 );
 
 new Config();
-await Config.init();
 
 console.log('****************** Daemon Ready ******************');
 
