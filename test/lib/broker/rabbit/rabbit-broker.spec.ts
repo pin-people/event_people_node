@@ -1,29 +1,27 @@
-import amqp, { Connection, Message } from 'amqplib';
+import amqp, { Connection } from 'amqplib';
 import { Config, Event } from '../../../../lib';
 jest.mock('../../../../lib/broker/rabbit/queue');
 import { Queue } from '../../../../lib/broker/rabbit/queue';
 import { RabbitBroker } from '../../../../lib/broker/rabbit/rabbit-broker';
 import { Topic } from '../../../../lib/broker/rabbit/topic';
-
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from '../../../mock/constants';
 import { mockConnection, mockSuccessCallback } from '../../../mock/rabbit';
+import { setEnvs } from '../../../../example/set-envs';
 
 describe('broker/rabbit/rabbit-broker.ts', () => {
-	const broker = new RabbitBroker();
+	let broker: RabbitBroker;
 
-	beforeEach(() => {
-		new Config(
-			RABBIT_URL,
-			RABBIT_EVENT_PEOPLE_VHOST,
-			RABBIT_EVENT_PEOPLE_APP_NAME,
-			RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-			broker,
-		);
+	beforeAll(async () => {
+		setEnvs();
+		broker = new RabbitBroker();
+		new Config(broker);
+
+		jest
+			.spyOn(Config.broker, 'getConnection')
+			.mockImplementationOnce(() =>
+				Promise.resolve(mockConnection as Connection),
+			);
+
+		await Config.init();
 	});
 	afterAll(async () => {
 		await broker.closeConnection();
@@ -39,7 +37,7 @@ describe('broker/rabbit/rabbit-broker.ts', () => {
 		await broker.closeConnection();
 
 		expect(broker).toBeDefined();
-		expect(connectSpy).toBeCalledWith(Config.FUll_URL);
+		expect(connectSpy).toBeCalledWith(Config.FULL_URL);
 		expect(mockConnection.close).toBeCalled();
 	});
 
@@ -54,11 +52,12 @@ describe('broker/rabbit/rabbit-broker.ts', () => {
 		const queueSpySubscribe = jest
 			.spyOn(Queue.prototype, 'subscribe')
 			.mockResolvedValueOnce(
-				new Promise<Message>((resolve) => resolve({} as Message)),
+				new Promise<void>(() => {
+					return;
+				}),
 			);
 
 		await broker.consume(eventName, mockSuccessCallback);
-		expect(queueSpySubscribe).toBeCalled();
 		expect(queueSpySubscribe).toBeCalledTimes(1);
 		expect(queueSpySubscribe).toBeCalledWith(eventName, mockSuccessCallback);
 	});
@@ -78,7 +77,6 @@ describe('broker/rabbit/rabbit-broker.ts', () => {
 	it('closeConnection()', async () => {
 		const closeSpy = jest.spyOn(mockConnection, 'close');
 		await broker.closeConnection();
-
 		expect(closeSpy).toBeCalled();
 	});
 });

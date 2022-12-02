@@ -17,23 +17,28 @@ As of today EventPeople uses RabbitMQ as its datasource, but there are plans to 
 
 Add this line to your application's `package.json`:
 
+```console
+yarn add event_people
+```
+
+or
+
 ```yaml
   "Dependencies": {
     ...
-    "eventPeople": "^0.0.1"
+    "event_people": "^1.0.0"
     ...
   }
 ```
 
 Add then run this command to install dependencies:
 
-    $ npm i
+```console
+yarn install
 
-Or to install and add it as a dependency in your project:
+```
 
-    $ npm i --save 'event_people'
-
-And set env vars:
+And set config vars:
 
 ```bash
 export RABBIT_URL = 'amqp://guest:guest@localhost:5672'
@@ -42,11 +47,20 @@ export RABBIT_EVENT_PEOPLE_VHOST = 'event_people'
 export RABBIT_EVENT_PEOPLE_TOPIC_NAME = 'event_people'
 ```
 
+or directly into javascript:
+
+```javascript
+process.env.RABBIT_URL = 'amqp://guest:guest@localhost:5672';
+process.env.RABBIT_EVENT_PEOPLE_APP_NAME = 'service_name';
+process.env.RABBIT_EVENT_PEOPLE_VHOST = 'event_people';
+process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME = 'event_people';
+```
+
 ## Usage
 
 ### Events
 
-The main component of `EventPeople` is the `eventPeople.Event` class which wraps all the logic of an event and whenever you receive or want to send an event you will use it.
+The main component of `EventPeople` is the `Event` class which wraps all the logic of an event and whenever you receive or want to send an event you will use it.
 
 It has 2 attributes `name` and `payload`:
 
@@ -54,7 +68,9 @@ It has 2 attributes `name` and `payload`:
 - **payload:** It is the body of the massage, it should be a Hash object for simplicity and flexibility.
 
 ```typescript
-import { Event } from 'eventPeople';
+import { Event } from 'event_people';
+
+new Config();
 
 const event_name = 'user.users.create';
 const body = { id: 42, name: 'John Doe', age: 35 };
@@ -72,7 +88,9 @@ There are 3 main interfaces to use `EventPeople` on your project:
 You can emit events on your project passing an `eventPeople.Event` instance to the `eventPeople.Emitter.trigger` method. Doing this other services that are subscribed to these events will receive it.
 
 ```typescript
-import { Config, Emitter, Event } from 'eventPeople';
+import { Config, Emitter, Event } from 'event_people';
+
+new Config();
 
 const event_name = 'receipt.payments.pay.users';
 const body = { amount: 350.76 };
@@ -104,14 +122,16 @@ Other important aspect of event consumming is the result of the processing we pr
 Given you want to consume a single event inside your project you can use the `eventPeople.Listener.on` method. It consumes a single event, given there are events available to be consumed with the given name pattern.
 
 ```typescript
-import { Config, Event, Listener } from 'eventPeople';
+import { Config, Event, Listener } from 'event_people';
 import { Base } from 'eventPeople.listeners';
 
 // 3 words event names will be replaced by its 4 word wildcard
 // counterpart: 'payment.payments.pay.all'
 const event_name = 'payment.payments.pay';
 
-await Listener.on(event_name, (event: Event, context: Base) => {
+new Config();
+
+Listener.on(event_name, (event: Event, context: Base) => {
 	console.log('');
 	console.log(`  - Received the "${event.name}" message from ${event.origin}:`);
 	console.log(`     Message: ${event.body}`);
@@ -125,7 +145,7 @@ Config.close_connection();
 You can also receive all available messages using a loop:
 
 ```typescript
-import { Config, Event, Listener } from 'eventPeople';
+import { Config, Event, Listener } from 'event_people';
 import { Base } from 'eventPeople.listeners';
 
 const event_name = 'payment.payments.pay.all';
@@ -156,7 +176,7 @@ Config.close_connection();
 If your project needs to handle lots of events you can extend `eventPeople.BaseListeners` class to bind how many events you need to instance methods, so whenever an event is received the method will be called automatically.
 
 ```typescript
-import { Event, BaseListeners } from 'eventPeople';
+import { Event, BaseListeners } from 'event_people';
 
 class CustomEventListener extends BaseListeners {
 	pay(event: Event): void {
@@ -189,6 +209,8 @@ class CustomEventListener extends BaseListeners {
 	}
 }
 
+new Config();
+
 CustomEventListener.bindEvent('resource.custom.pay', this.pay);
 CustomEventListener.bindEvent('resource.custom.receive', this.receive);
 CustomEventListener.bindEvent(
@@ -204,7 +226,7 @@ CustomEventListener.bindEvent(
 If you have the need to create a deamon to consume messages on background you can use the `eventPeople.Daemon.start` method to do so with ease. Just remember to define or import all the event bindings before starting the daemon.
 
 ```typescript
-import { Daemon, Event, BaseListeners } from 'eventPeople';
+import { Daemon, Event, BaseListeners } from 'event_people';
 
 class CustomEventListener extends BaseListeners {
 	pay(event: Event): void {
@@ -245,6 +267,8 @@ CustomEventListener.bindEvent(
 	this.privateChannel,
 );
 
+new Config();
+
 console.log('****************** Daemon Ready ******************');
 
 Daemon.start();
@@ -256,7 +280,7 @@ Daemon.start();
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `bin/test` to run the tests.
 
-To install this module onto your local machine, run `npm install .`.
+To install this module onto your local machine, run `npm install -g`.
 
 ## Contributing
 

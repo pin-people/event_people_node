@@ -1,13 +1,10 @@
-import { Config, Daemon, Event } from '../lib';
-import { BaseListener, ListenersManager } from '../lib/listeners';
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from './constants';
+import { Config, Daemon, Event, BaseListener, ListenersManager } from '../lib';
+import { setEnvs } from './set-envs';
+
+setEnvs();
 
 (async () => {
+	await Config.init();
 	class CustomEventListener extends BaseListener {
 		pay(event: Event) {
 			console.log(
@@ -47,13 +44,6 @@ import {
 		'resource.custom.private.service',
 	);
 
-	await new Config(
-		RABBIT_URL,
-		RABBIT_EVENT_PEOPLE_VHOST,
-		RABBIT_EVENT_PEOPLE_APP_NAME,
-		RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	).init();
-
 	console.log('****************** Daemon Ready ******************');
 	Daemon.start();
 
@@ -61,7 +51,7 @@ import {
 		console.log(`
 			Library Running
 			\nList of Listenning channels:\n[${ListenersManager.getListenerConfigurations().map(
-				(config) => config.routingKey,
+				(config) => config.eventName,
 			)}]
 		`);
 	}, 5000);

@@ -13,26 +13,23 @@ export class Config {
 	 *Setup for the Message broker that will handle events implementing BaseBroker
 	 * @param {BaseBroker} broker
 	 */
-	constructor(
-		url: string,
-		vhost: string,
-		appName: string,
-		topicName: string,
-		broker?: BaseBroker,
-	) {
-		Config.URL = url || 'amqp://admin:admin@127.0.0.1:5672';
-		Config.VHOST_NAME = vhost || 'event-people';
-		Config.APP_NAME = appName || 'event-people-node';
-		Config.TOPIC_NAME = topicName || 'event-people-exchange';
-		Config.FULL_URL = `${Config.URL}/${Config.VHOST_NAME}`;
-
+	constructor(broker?: BaseBroker) {
 		Config.broker = broker || new RabbitBroker();
 	}
 
 	/**
+	 * Setup for the Message broker that will handle events implementing BaseBroker
 	 * Initialize getting the broker connection
+	 * * @param {BaseBroker} broker
 	 */
-	public async init(): Promise<void> {
+	public static async init(): Promise<void> {
+		Config.URL = process.env.RABBIT_URL;
+		Config.VHOST_NAME = process.env.RABBIT_EVENT_PEOPLE_VHOST;
+		Config.APP_NAME = process.env.RABBIT_EVENT_PEOPLE_APP_NAME;
+		Config.TOPIC_NAME = process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME;
+		Config.FULL_URL = `${Config.URL}/${Config.VHOST_NAME}`;
+
+		Config.broker ? Config.broker : (Config.broker = new RabbitBroker());
 		await Config.broker.getConnection();
 	}
 	/**

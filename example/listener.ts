@@ -1,19 +1,11 @@
-import { Context } from '../lib/context';
+import { Context } from '../lib/';
 import { Config, Event, Listener } from '../lib';
-import {
-	RABBIT_EVENT_PEOPLE_APP_NAME,
-	RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	RABBIT_EVENT_PEOPLE_VHOST,
-	RABBIT_URL,
-} from './constants';
+import { setEnvs } from './set-envs';
+
+setEnvs();
 
 (async () => {
-	await new Config(
-		RABBIT_URL,
-		RABBIT_EVENT_PEOPLE_VHOST,
-		RABBIT_EVENT_PEOPLE_APP_NAME,
-		RABBIT_EVENT_PEOPLE_TOPIC_NAME,
-	).init();
+	await Config.init();
 
 	const eventName = 'resource.origin.action';
 

@@ -12,7 +12,7 @@ export class ListenersManager {
 	 */
 	public static bindAllListeners(): void {
 		return ListenersManager.listenerConfigurations.forEach((config) => {
-			Listener.on(config.routingKey, (event: Event, context: Context) => {
+			Listener.on(config.eventName, (event: Event, context: Context) => {
 				const instance: BaseListener = new config.listener(context);
 				instance[config.method](event);
 			});

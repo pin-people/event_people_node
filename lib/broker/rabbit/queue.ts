@@ -16,17 +16,17 @@ export class Queue {
 	/**
 	 * Makes a subscription to receive events for a certain routingKey
 	 * @param {string} routingKey - name path for the queue. Example: messages.*.all
-	 * @param {Function}  callback - function to execute actions after event received
+	 * @param {Function}  method - function to execute actions after event received
 	 * @returns {Promise<Message>} Promise of Message
 	 *
 	 */
 	async subscribe(
 		routingKey: string,
 		method: (event: Event, context: Context) => void,
-	): Promise<Message> {
-		const name = this.queueName(routingKey);
+	): Promise<void> {
+		const queueName = this.queueName(routingKey);
 
-		const assertedQueue = await this.channel.assertQueue(name, {
+		const assertedQueue = await this.channel.assertQueue(queueName, {
 			exclusive: false,
 			durable: true,
 		});
@@ -39,19 +39,17 @@ export class Queue {
 			routingKey,
 		);
 
-		return new Promise<Message>(async (resolve) => {
-			await this.channel.consume(name, (message: ConsumeMessage) => {
-				const eventPayload: Record<string, any> = JSON.parse(
-					String(message.content),
-				);
-				const deliveryInfo: DeliveryInfo = {
-					deliveryTag: String(message.fields.deliveryTag),
-					routingKey: message.fields.routingKey,
-				};
+		await this.channel.consume(queueName, (message: ConsumeMessage) => {
+			const eventPayload: Record<string, any> = JSON.parse(
+				String(message.content),
+			);
 
-				this.callback(deliveryInfo, eventPayload, message as Message, method);
-				resolve(message);
-			});
+			const deliveryInfo: DeliveryInfo = {
+				deliveryTag: String(message.fields.deliveryTag),
+				routingKey: message.fields.routingKey,
+			};
+
+			this.callback(deliveryInfo, eventPayload, message as Message, method);
 		});
 	}
 
@@ -69,8 +67,7 @@ export class Queue {
 		message: Message,
 		method: (event: Event, context: Context) => void,
 	): void {
-		const eventName = deliveryInfo.routingKey;
-		const event = new Event(eventName, payload);
+		const event = new Event(deliveryInfo.routingKey, payload);
 		const context = new RabbitContext(this.channel, message);
 		method(event, context);
 	}
@@ -81,17 +78,8 @@ export class Queue {
 	 * @returns {string} string
 	 */
 	private queueName(routingKey: string): string {
-		const splitEventName = routingKey.split('.');
-
-		if (![3, 4].includes(splitEventName.length))
-			throw new Error(
-				`invalid event name: "${routingKey}" length, should match resource.origin.action or resource.origin.action.dest pattern`,
-			);
-
-		const last = splitEventName.length - 1;
-		if (splitEventName[last] !== 'all')
-			return `${this.config.APP_NAME.toLocaleLowerCase()}-${routingKey.toLocaleLowerCase()}.all`;
-
-		return `${this.config.APP_NAME.toLocaleLowerCase()}-${routingKey.toLocaleLowerCase()}`;
+		const fixed = Event.fixedEventName(routingKey, 'all');
+		const name = `${Config.APP_NAME}-${fixed}`.toLowerCase();
+		return name;
 	}
 }

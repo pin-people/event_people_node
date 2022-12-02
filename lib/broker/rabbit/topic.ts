@@ -23,16 +23,15 @@ export class Topic {
 	 * Publish a message event through the queue channel
 	 * @param {EVent} event - message event that will be produced
 	 */
-	produce(event: Event): void {
-		if (!this.getTopic()) throw new MissingAttributeError('topic');
+	async produce(event: Event): Promise<void> {
+		if (!this.getTopic() || this.topic.length < 1)
+			throw new MissingAttributeError('topic');
 
-		this.channel.publish(
-			this.topic,
-			event.getName(),
-			Buffer.from(JSON.stringify(event.payload())),
-			{
-				contentType: 'application/json',
-			},
-		);
+		const content = Buffer.from(JSON.stringify(event.payload()));
+
+		this.channel.publish(this.topic, event.getName(), content, {
+			contentType: 'application/json',
+			type: 'topic',
+		});
 	}
 }
