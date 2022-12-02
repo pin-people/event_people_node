@@ -67,10 +67,7 @@ export class Queue {
 		message: Message,
 		method: (event: Event, context: Context) => void,
 	): void {
-		const eventName = Event.fixedEventName(deliveryInfo.routingKey, 'all');
-
-		const event = new Event(eventName, payload);
-
+		const event = new Event(deliveryInfo.routingKey, payload);
 		const context = new RabbitContext(this.channel, message);
 		method(event, context);
 	}
@@ -81,8 +78,8 @@ export class Queue {
 	 * @returns {string} string
 	 */
 	private queueName(routingKey: string): string {
-		// const fixed = Event.fixedEventName(routingKey, 'all');
-		const name = `${Config.APP_NAME}-${routingKey}`.toLowerCase();
+		const fixed = Event.fixedEventName(routingKey, 'all');
+		const name = `${Config.APP_NAME}-${fixed}`.toLowerCase();
 		return name;
 	}
 }
