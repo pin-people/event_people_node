@@ -28,9 +28,9 @@ setEnvs();
 	events.push(new Event(eventName, body));
 
 	eventName = 'resource.custom.private.service';
-	body = { message: 'Secret' };
+	const stringBody = `{ "message": "Secret"}`;
 
-	events.push(new Event(eventName, body));
+	events.push(new Event(eventName, stringBody));
 
 	eventName = 'resource.origin.action.all';
 	body = { bo: 'dy' };

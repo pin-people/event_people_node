@@ -12,6 +12,7 @@ setEnvs();
 	console.log('Start receiving messages');
 
 	Listener.on(eventName, (event: Event, context: Context) => {
+		console.log('\n\n');
 		console.log(`-		Received a message from ${event.getName()}`);
 		console.log(`-  	Message headers ${JSON.stringify(event.getHeaders())}`);
 		console.log(`-		Message: ${JSON.stringify(event.getBody())}`);
