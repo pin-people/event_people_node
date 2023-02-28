@@ -12,14 +12,14 @@ export type EventHeaders = {
 
 export type EventPayload = {
 	headers: EventHeaders;
-	body: Record<string, any>;
+	body: Record<string, any> | string;
 };
 
 export class Event {
 	private headers: EventHeaders;
 	constructor(
 		private name: string,
-		private readonly body: Record<string, any>,
+		private readonly body: Record<string, any> | string,
 		private readonly schemaVersion = 1.0,
 	) {}
 
@@ -35,10 +35,10 @@ export class Event {
 	}
 	/**
 	 * Returns the event body
-	 * @returns {Record<any, string>} - Record<any, string>
+	 * @returns {Record<any, string>} - Record<any, string> | string
 	 */
 	getBody(): Record<any, string> {
-		return this.body;
+		return typeof this.body === 'string' ? JSON.parse(this.body) : this.body;
 	}
 
 	/**

@@ -51,6 +51,15 @@ describe('lib/event.ts', () => {
 		expect(eventBody).toStrictEqual(body);
 	});
 
+	it('getBody() - should return body string correctly', () => {
+		const stringBody = `{ "text": "a message body" }`;
+		const event = new Event('another.custom.action', stringBody);
+
+		const eventBody = event.getBody();
+
+		expect(eventBody).toStrictEqual(JSON.parse(stringBody));
+	});
+
 	it('getName() - should return name correctly', () => {
 		const body = { text: 'message body' };
 		const name = 'another.great.action';

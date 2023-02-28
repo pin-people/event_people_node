@@ -30,9 +30,9 @@ setEnvs();
 
 		privateChannel(event: Event) {
 			console.log(
-				`[consumer] Got a private message: ${
-					event.getBody()['message']
-				} ~> ${event.getName()}`,
+				`[consumer] Got a private message: ${JSON.stringify(
+					event.getBody(),
+				)} ~> ${event.getName()}`,
 			);
 		}
 	}
