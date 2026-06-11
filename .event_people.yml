@@ -35,3 +35,19 @@ pending:
   - "RabbitContext.maxRetries"
   - "RabbitContext.isLastRetry"
   - "RabbitContext.dlqName"
+
+# Structural or naming departures from the spec
+deviations:
+  - id: DEV-ND-001
+    component: Queue
+    file: "lib/broker/rabbit/queue.ts"
+    severity: high
+    description: >
+      queueName() calls Event.fixedEventName(routingKey, 'all'), normalizing the destination
+      segment to 'all' and producing queue names ending in .all
+      (e.g. {appName}-resource.origin.action.all).
+      Spec v2.0.0 requires the destination segment to be the consuming service's appName:
+      {appName}-resource.origin.action.{appName}.
+    fix: >
+      Replace fixedEventName(routingKey, 'all') with fixedEventName(routingKey, Config.APP_NAME).
+      Both routing keys (.all and .{appName}) must resolve to the same queue name.
