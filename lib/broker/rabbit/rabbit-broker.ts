@@ -40,8 +40,11 @@ export class RabbitBroker implements BaseBroker {
 	public async consume(
 		eventName: string,
 		callback: (event: Event, context: Context) => void,
+		maxAttempts?: number,
+		delayStrategy?: string,
+		dlqName?: string,
 	): Promise<void> {
-		this.queue.subscribe(eventName, callback);
+		this.queue.subscribe(eventName, callback, maxAttempts, delayStrategy, dlqName);
 	}
 
 	public async produce(event: Event): Promise<void> {

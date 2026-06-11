@@ -5,21 +5,28 @@ import { MissingAttributeError } from './utils/errors';
 
 export class Listener {
 	/**
-	 * Calls the broker consume method to receive stream events from certain queue
-	 * @param {string} eventName string for queue event name
-	 * @param callback action callback function to execute after consuming the event
+	 * Calls the broker consume method to receive stream events from certain queue.
+	 * Optional retry parameters fall back to Config defaults when not provided.
+	 * @param {string} eventName - string for queue event name
+	 * @param callback - action callback function to execute after consuming the event
+	 * @param {number} [maxAttempts] - max delivery attempts (default: Config.maxAttempts)
+	 * @param {string} [delayStrategy] - 'exponential' or 'fixed' (default: Config.delayStrategy)
+	 * @param {string} [dlqName] - dead-letter queue name (default: Config.dlqName)
 	 */
 	public static on(
 		eventName: string,
 		callback: (event: Event, context: Context) => void,
+		maxAttempts?: number,
+		delayStrategy?: string,
+		dlqName?: string,
 	): void {
 		if (eventName.length <= 0) throw new MissingAttributeError('Event name');
 
-		Config.broker.consume(eventName, callback);
+		Config.broker.consume(eventName, callback, maxAttempts, delayStrategy, dlqName);
 	}
 
 	/**
-	 *Normilizes event name with 'all' suffix
+	 * Normalizes event name with 'all' suffix
 	 * @param {string} eventName string name for the event
 	 * @returns {String} string
 	 */
