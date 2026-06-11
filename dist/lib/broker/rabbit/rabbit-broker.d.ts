@@ -18,7 +18,7 @@ export declare class RabbitBroker implements BaseBroker {
      * @returns {Promise<Channel>}
      */
     private getChannel;
-    consume(eventName: string, callback: (event: Event, context: Context) => void): Promise<void>;
+    consume(eventName: string, callback: (event: Event, context: Context) => void, maxAttempts?: number, delayStrategy?: string, dlqName?: string): Promise<void>;
     produce(event: Event): Promise<void>;
     closeConnection(): Promise<void>;
 }

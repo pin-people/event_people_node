@@ -48,7 +48,7 @@ export class RabbitContext implements Context {
 			this.channel.publish('', retryQueueName, Buffer.from(originalBody), {
 				headers: { 'x-event-people-retries': this.retryCount + 1 },
 				expiration: String(delay),
-				contentType: 'application/json',
+				contentType: this.message.properties.contentType,
 			});
 			this.channel.ack(this.message, false);
 		} else {
