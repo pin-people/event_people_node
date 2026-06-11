@@ -9,6 +9,9 @@ class Config {
     static VHOST_NAME;
     static URL;
     static FULL_URL;
+    static maxAttempts;
+    static delayStrategy;
+    static dlqName;
     /**
      *Setup for the Message broker that will handle events implementing BaseBroker
      * @param {BaseBroker} broker
@@ -27,8 +30,22 @@ class Config {
         Config.APP_NAME = process.env.RABBIT_EVENT_PEOPLE_APP_NAME;
         Config.TOPIC_NAME = process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME;
         Config.FULL_URL = `${Config.URL}/${Config.VHOST_NAME}`;
+        Config.maxAttempts = parseInt(process.env.RABBIT_EVENT_PEOPLE_MAX_RETRIES || '3', 10);
+        Config.delayStrategy = 'exponential';
+        Config.dlqName = `${Config.APP_NAME}_dlq`;
         Config.broker ? Config.broker : (Config.broker = new rabbit_broker_1.RabbitBroker());
         await Config.broker.getConnection();
+    }
+    /**
+     * Returns the retry configuration object
+     * @returns {{ maxAttempts: number; delayStrategy: string; dlqName: string }}
+     */
+    static getRetryConfig() {
+        return {
+            maxAttempts: Config.maxAttempts,
+            delayStrategy: Config.delayStrategy,
+            dlqName: Config.dlqName,
+        };
     }
     /**
      * @returns {BaseBroker} BaseBroker

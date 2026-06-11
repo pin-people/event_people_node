@@ -8,10 +8,19 @@ class Event {
     body;
     schemaVersion;
     headers;
-    constructor(name, body, schemaVersion = 1.0) {
+    retryCount;
+    constructor(name, body, schemaVersion = 1.0, retryCount = 0) {
         this.name = name;
         this.body = body;
         this.schemaVersion = schemaVersion;
+        this.retryCount = retryCount;
+    }
+    /**
+     * Increments the retry count by 1
+     * @returns {void}
+     */
+    incrementRetryCount() {
+        this.retryCount += 1;
     }
     /**
      * Constructs eventPayload, containing headers and the body for this event
@@ -36,6 +45,13 @@ class Event {
      */
     getName() {
         return this.name;
+    }
+    /**
+     * Sets the event name
+     * @param {string} name - New event name
+     */
+    setName(name) {
+        this.name = name;
     }
     /**
      * Builds the headers based on the app_name and event name and schemaVersion

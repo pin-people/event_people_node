@@ -15,7 +15,13 @@ export declare class Event {
     private readonly body;
     private readonly schemaVersion;
     private headers;
-    constructor(name: string, body: Record<string, any> | string, schemaVersion?: number);
+    retryCount: number;
+    constructor(name: string, body: Record<string, any> | string, schemaVersion?: number, retryCount?: number);
+    /**
+     * Increments the retry count by 1
+     * @returns {void}
+     */
+    incrementRetryCount(): void;
     /**
      * Constructs eventPayload, containing headers and the body for this event
      * @returns {EventPayload} - EventPayload
@@ -31,6 +37,11 @@ export declare class Event {
      * @returns {string} - string
      */
     getName(): string;
+    /**
+     * Sets the event name
+     * @param {string} name - New event name
+     */
+    setName(name: string): void;
     /**
      * Builds the headers based on the app_name and event name and schemaVersion
      * @returns {EventHeaders} - EventHeaders

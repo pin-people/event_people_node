@@ -72,14 +72,16 @@ export class Queue {
 			routingKey,
 		);
 
-		await this.channel.consume(queueName, (message: ConsumeMessage) => {
-			const retryCount =
-				(message.properties.headers?.[
-					'x-event-people-retries'
-				] as number) || 0;
+		await this.channel.consume(queueName, (message: ConsumeMessage | null) => {
+			if (!message) return;
+
+			const retryCount = Math.max(
+				0,
+				Number(message.properties.headers?.['x-event-people-retries'] ?? 0),
+			);
 
 			const eventPayload: Record<string, any> = JSON.parse(
-				String(message.content),
+				message.content.toString(),
 			);
 
 			const deliveryInfo: DeliveryInfo = {

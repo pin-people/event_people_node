@@ -17,5 +17,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./queue"), exports);
 __exportStar(require("./rabbit-broker"), exports);
 __exportStar(require("./rabbit-context"), exports);
+__exportStar(require("./retry-manager"), exports);
 __exportStar(require("./topic"), exports);
 //# sourceMappingURL=index.js.map

@@ -34,8 +34,8 @@ class RabbitBroker {
             return this.connection.createChannel();
         return this.channel;
     }
-    async consume(eventName, callback) {
-        this.queue.subscribe(eventName, callback);
+    async consume(eventName, callback, maxAttempts, delayStrategy, dlqName) {
+        this.queue.subscribe(eventName, callback, maxAttempts, delayStrategy, dlqName);
     }
     async produce(event) {
         this.topic.produce(event);
