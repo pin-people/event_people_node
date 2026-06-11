@@ -1,5 +1,5 @@
 spec_version: "1.1.0"
-implementation_version: "0.0.5"
+implementation_version: "0.1.0"
 language: typescript
 package: "event_people (npm)"
 status: stable
@@ -19,9 +19,6 @@ implemented:
   - RabbitContext
   - Topic
   - Queue
-
-# Spec components not yet implemented (pending in spec too)
-pending:
   - RetryManager
   - "Event.retryCount"
   - "Event.incrementRetryCount"
@@ -35,3 +32,6 @@ pending:
   - "RabbitContext.maxRetries"
   - "RabbitContext.isLastRetry"
   - "RabbitContext.dlqName"
+
+# Spec components not yet implemented (pending in spec too)
+pending: []

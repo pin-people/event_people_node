@@ -17,11 +17,24 @@ export type EventPayload = {
 
 export class Event {
 	private headers: EventHeaders;
+	public retryCount: number;
+
 	constructor(
 		private name: string,
 		private readonly body: Record<string, any> | string,
 		private readonly schemaVersion = 1.0,
-	) {}
+		retryCount = 0,
+	) {
+		this.retryCount = retryCount;
+	}
+
+	/**
+	 * Increments the retry count by 1
+	 * @returns {void}
+	 */
+	incrementRetryCount(): void {
+		this.retryCount += 1;
+	}
 
 	/**
 	 * Constructs eventPayload, containing headers and the body for this event
