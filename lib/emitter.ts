@@ -15,6 +15,7 @@ export class Emitter {
 			if (!event.getName())
 				throw new MissingAttributeError(`Event name on position ${index}`);
 
+			event.setName(Event.fixedEventName(event.getName(), 'all'));
 			Config.broker.produce(event);
 		});
 	}

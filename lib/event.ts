@@ -50,6 +50,14 @@ export class Event {
 	}
 
 	/**
+	 * Sets the event name
+	 * @param {string} name - New event name
+	 */
+	setName(name: string): void {
+		this.name = name;
+	}
+
+	/**
 	 * Builds the headers based on the app_name and event name and schemaVersion
 	 * @returns {EventHeaders} - EventHeaders
 	 */
