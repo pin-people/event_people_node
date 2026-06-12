@@ -276,6 +276,66 @@ Daemon.start();
 
 [See more details](https://github.com/pin-people/event_people_node/blob/master/examples/daemon.rb)
 
+## Retry and Dead Letter Queue (DLQ)
+
+### Environment variables
+
+- `RABBIT_EVENT_PEOPLE_MAX_RETRIES` — max retry attempts before dead-lettering (default: `3`)
+- `RABBIT_EVENT_PEOPLE_RETRY_TTL_MS` — base delay in ms for retry backoff (default: `1000`)
+
+### How it works
+
+On `context.fail()`:
+
+- If retries remain → message published to `{queue}_retry` with exponential backoff delay, then acked
+- If retries exhausted → nacked to DLQ via RabbitMQ DLX
+
+On `context.reject()` → nacked directly to DLQ (no retries)
+
+**Delay strategies:**
+
+- `exponential` (default): `min(initialDelay × 5^retryCount, 600000)` ms
+- `fixed`: constant `initialDelay` ms
+
+### Queue topology (auto-created on subscribe)
+
+| Queue/Exchange | Name | Purpose |
+|---|---|---|
+| Exchange (DLX) | `{appName}_dlx` | Fanout, receives dead-lettered messages |
+| DLQ | `{appName}_dlq` | Final resting place for failed messages |
+| Retry queue | `{queue_name}_retry` | Holds messages until backoff delay expires |
+
+### Usage
+
+```typescript
+import { Listener, Event, Context } from 'event_people';
+
+function handleOrder(event: Event, context: Context): void {
+  console.log(`Attempt ${event.retryCount + 1} of ${context.maxRetries}`);
+
+  if (isInvalid(event)) {
+    context.reject(); // → DLQ immediately, no retries
+    return;
+  }
+
+  try {
+    process(event);
+    context.success();
+  } catch (err) {
+    if (context.isLastRetry) {
+      console.log('Final attempt failed, sending to DLQ');
+    }
+    context.fail(); // → retry queue (or DLQ if exhausted)
+  }
+}
+
+// Per-listener retry config (overrides env var defaults)
+Listener.on('order.service.created', handleOrder, 5, 'exponential');
+
+// Fixed delay
+Listener.on('user.service.updated', handleOrder, 3, 'fixed');
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `bin/test` to run the tests.
