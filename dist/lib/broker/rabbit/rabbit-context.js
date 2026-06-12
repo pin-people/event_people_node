@@ -37,12 +37,17 @@ class RabbitContext {
             const retryQueueName = `${this.queueName}_retry`;
             const delay = this.retryManager.getNextDelay(this.retryCount);
             const originalBody = this.message.content;
-            this.channel.publish('', retryQueueName, Buffer.from(originalBody), {
-                headers: { 'x-event-people-retries': this.retryCount + 1 },
-                expiration: String(delay),
-                contentType: this.message.properties.contentType,
-            });
-            this.channel.ack(this.message, false);
+            try {
+                this.channel.publish('', retryQueueName, Buffer.from(originalBody), {
+                    headers: { 'x-event-people-retries': this.retryCount + 1 },
+                    expiration: String(delay),
+                    contentType: this.message.properties.contentType,
+                });
+                this.channel.ack(this.message, false);
+            }
+            catch (_err) {
+                this.channel.nack(this.message, false, false);
+            }
         }
         else {
             this.channel.nack(this.message, false, false);
