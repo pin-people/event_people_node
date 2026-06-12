@@ -43,10 +43,22 @@ class RabbitContext {
                     expiration: String(delay),
                     contentType: this.message.properties.contentType,
                 });
-                this.channel.ack(this.message, false);
+                try {
+                    this.channel.ack(this.message, false);
+                }
+                catch (_ackErr) {
+                    // Publish succeeded; swallow ack errors. The message may be redelivered
+                    // once (at-least-once), but that is safer than nacking to DLQ when a
+                    // retry copy is already enqueued.
+                }
             }
             catch (_err) {
-                this.channel.nack(this.message, false, false);
+                try {
+                    this.channel.nack(this.message, false, false);
+                }
+                catch (_nackErr) {
+                    // Channel already dead; message will be redelivered on reconnect.
+                }
             }
         }
         else {
