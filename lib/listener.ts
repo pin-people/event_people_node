@@ -1,28 +1,26 @@
 import { Config } from './config';
 import { Context } from './context';
 import { Event } from './event';
+import { BaseListener } from './listeners/base-listener';
 import { MissingAttributeError } from './utils/errors';
 
 export class Listener {
 	/**
 	 * Calls the broker consume method to receive stream events from certain queue.
-	 * Optional retry parameters fall back to Config defaults when not provided.
+	 * Retry configuration is read from the listener class attributes (if provided),
+	 * falling back to Config defaults.
 	 * @param {string} eventName - string for queue event name
 	 * @param callback - action callback function to execute after consuming the event
-	 * @param {number} [maxAttempts] - max delivery attempts (default: Config.maxAttempts)
-	 * @param {string} [delayStrategy] - 'exponential' or 'fixed' (default: Config.delayStrategy)
-	 * @param {string} [dlqName] - dead-letter queue name (default: Config.dlqName)
+	 * @param {typeof BaseListener} listenerClass - optional listener class for per-listener retry config
 	 */
 	public static on(
 		eventName: string,
 		callback: (event: Event, context: Context) => void,
-		maxAttempts?: number,
-		delayStrategy?: string,
-		dlqName?: string,
+		listenerClass?: typeof BaseListener,
 	): void {
 		if (eventName.length <= 0) throw new MissingAttributeError('Event name');
 
-		Config.broker.consume(eventName, callback, maxAttempts, delayStrategy, dlqName);
+		Config.broker.consume(eventName, callback, listenerClass);
 	}
 
 	/**
