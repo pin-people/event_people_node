@@ -14,6 +14,7 @@ export class RabbitContext implements Context {
 		private readonly message: Message,
 		private readonly queueName: string,
 		maxRetries: number,
+		initialDelay: number,
 		delayStrategy: string,
 		retryCount: number,
 		dlqName: string,
@@ -21,7 +22,7 @@ export class RabbitContext implements Context {
 		this.maxRetries = maxRetries;
 		this.dlqName = dlqName;
 		this.retryCount = retryCount;
-		this.retryManager = new RetryManager(maxRetries, delayStrategy);
+		this.retryManager = new RetryManager(maxRetries, delayStrategy, initialDelay);
 	}
 
 	/**
