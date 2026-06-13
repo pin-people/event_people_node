@@ -9,6 +9,9 @@ describe('lib/listener.ts', () => {
 		beforeAll(() => {
 			new Config();
 		});
+		afterEach(() => {
+			jest.clearAllMocks();
+		});
 		afterAll(() => {
 			jest.clearAllMocks();
 		});
@@ -25,8 +28,23 @@ describe('lib/listener.ts', () => {
 			Listener.on('some.custom.action', jestCallback);
 
 			expect(consumeSpy).toBeCalledTimes(1);
-			expect(consumeSpy).toBeCalledWith('some.custom.action', jestCallback);
+			// listenerClass is undefined when called without a class (plain callback usage)
+			expect(consumeSpy).toBeCalledWith('some.custom.action', jestCallback, undefined);
 			expect(jestCallback).toBeCalledTimes(1);
+		});
+
+		it('should not accept retry params (v1.2.0 — retry config via class attributes or Config)', () => {
+			// Listener.on now has signature: on(eventName, callback, listenerClass?)
+			const jestCallback = jest.fn();
+			const consumeSpy = jest
+				.spyOn(Config.broker, 'consume')
+				.mockImplementation(() => undefined as any);
+
+			// Calling with just 2 args still works; listenerClass defaults to undefined
+			Listener.on('some.custom.action', jestCallback);
+
+			expect(consumeSpy).toBeCalledTimes(1);
+			expect(consumeSpy).toBeCalledWith('some.custom.action', jestCallback, undefined);
 		});
 
 		it('should throw event name error', () => {

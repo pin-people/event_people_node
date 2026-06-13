@@ -1,5 +1,5 @@
-spec_version: "1.1.1"
-implementation_version: "0.1.1"
+spec_version: "1.2.0"
+implementation_version: "0.2.0"
 language: typescript
 package: "event_people (npm)"
 status: stable
@@ -7,31 +7,49 @@ status: stable
 # Components fully implemented (with deviations/bugs noted separately)
 implemented:
   - Config
+  - "Config.configure"
+  - "Config.initialDelay"
+  - "Config.getRetryConfig (returns maxAttempts, initialDelay, delayStrategy, dlqName)"
   - Event
+  - "Event.retryCount"
+  - "Event.incrementRetryCount"
   - Listener
+  - "Listener.on (signature: on(eventName, callback) — no retry params)"
   - Emitter
   - Daemon
   - Context
+  - "Context.maxRetries"
+  - "Context.isLastRetry"
   - BaseListener
+  - "BaseListener class-level retry attributes: maxAttempts, initialDelay, delayStrategy, dlqName"
   - ListenersManager
   - BaseBroker
   - RabbitBroker
   - RabbitContext
-  - Topic
-  - Queue
-  - RetryManager
-  - "Event.retryCount"
-  - "Event.incrementRetryCount"
-  - "Config.maxAttempts"
-  - "Config.delayStrategy"
-  - "Config.dlqName"
-  - "Config.getRetryConfig"
-  - "Listener.on (retry params: maxAttempts, delayStrategy, dlqName)"
-  - "Context.maxRetries"
-  - "Context.isLastRetry"
   - "RabbitContext.maxRetries"
   - "RabbitContext.isLastRetry"
   - "RabbitContext.dlqName"
+  - Topic
+  - Queue
+  - RetryManager
 
 # Spec components not yet implemented (pending in spec too)
 pending: []
+
+# Known deviations from the spec
+deviations:
+  - id: DEV-ND-001
+    component: BaseListener.bindEvent
+    description: >
+      Registers a second subscription with .{appName} destination in addition to .all —
+      not defined in spec but useful for targeted delivery.
+    status: accepted
+
+  - id: DEV-ND-002
+    component: Event
+    description: >
+      Event.fixedEventName() — spec/other languages use fixName(); no functional difference.
+    status: accepted
+
+# Known bugs
+bugs: []

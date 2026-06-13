@@ -7,6 +7,11 @@ describe('broker/base-broker.ts', () => {
 	});
 
 	class mockContext implements Context {
+		maxRetries: number = 3;
+		get isLastRetry(): boolean {
+			return false;
+		}
+		dlqName: string = 'test_dlq';
 		success(): void {
 			return;
 		}

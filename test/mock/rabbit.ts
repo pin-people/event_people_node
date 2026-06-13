@@ -6,6 +6,7 @@ export const mockQueue: Partial<Queue> = {};
 
 export const mockChannel: Partial<Channel> = {
 	assertQueue: jest.fn(),
+	assertExchange: jest.fn(),
 	bindQueue: jest.fn(),
 	prefetch: jest.fn(),
 	publish: jest.fn(),
@@ -23,6 +24,11 @@ export const mockConnection: Partial<Connection> = {
 export class MockContext implements Context {
 	channel: Channel;
 	message: Message;
+	maxRetries: number = 3;
+	get isLastRetry(): boolean {
+		return false;
+	}
+	dlqName: string = 'test_dlq';
 	constructor(channel: Channel, message: Message) {
 		this.channel = channel;
 		this.message = message;

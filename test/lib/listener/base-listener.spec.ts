@@ -148,4 +148,42 @@ describe('lib/listener/base-listener.ts', () => {
 
 		expect(contextSpy).toBeCalledTimes(1);
 	});
+
+	describe('class-level retry attributes (v1.2.0)', () => {
+		it('should allow subclass to declare static maxAttempts', () => {
+			class SpecialListener extends BaseListener {
+				static maxAttempts = 10;
+			}
+			expect(SpecialListener.maxAttempts).toBe(10);
+		});
+
+		it('should allow subclass to declare static initialDelay', () => {
+			class SpecialListener extends BaseListener {
+				static initialDelay = 500;
+			}
+			expect(SpecialListener.initialDelay).toBe(500);
+		});
+
+		it('should allow subclass to declare static delayStrategy', () => {
+			class SpecialListener extends BaseListener {
+				static delayStrategy = 'fixed';
+			}
+			expect(SpecialListener.delayStrategy).toBe('fixed');
+		});
+
+		it('should allow subclass to declare static dlqName', () => {
+			class SpecialListener extends BaseListener {
+				static dlqName = 'service_custom_dlq';
+			}
+			expect(SpecialListener.dlqName).toBe('service_custom_dlq');
+		});
+
+		it('should have undefined class-level retry attrs on BaseListener when not declared', () => {
+			class DefaultListener extends BaseListener {}
+			expect(DefaultListener.maxAttempts).toBeUndefined();
+			expect(DefaultListener.initialDelay).toBeUndefined();
+			expect(DefaultListener.delayStrategy).toBeUndefined();
+			expect(DefaultListener.dlqName).toBeUndefined();
+		});
+	});
 });

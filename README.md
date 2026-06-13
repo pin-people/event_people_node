@@ -41,13 +41,13 @@ yarn install
 And set config vars:
 
 ```bash
-export RABBIT_URL = 'amqp://guest:guest@localhost:5672'
-export RABBIT_EVENT_PEOPLE_APP_NAME = 'service_name'
-export RABBIT_EVENT_PEOPLE_VHOST = 'event_people'
-export RABBIT_EVENT_PEOPLE_TOPIC_NAME = 'event_people'
+export RABBIT_URL='amqp://guest:guest@localhost:5672'
+export RABBIT_EVENT_PEOPLE_APP_NAME='service_name'
+export RABBIT_EVENT_PEOPLE_VHOST='event_people'
+export RABBIT_EVENT_PEOPLE_TOPIC_NAME='event_people'
 ```
 
-or directly into javascript:
+or directly in JavaScript/TypeScript:
 
 ```javascript
 process.env.RABBIT_URL = 'amqp://guest:guest@localhost:5672';
@@ -55,6 +55,8 @@ process.env.RABBIT_EVENT_PEOPLE_APP_NAME = 'service_name';
 process.env.RABBIT_EVENT_PEOPLE_VHOST = 'event_people';
 process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME = 'event_people';
 ```
+
+**Note:** `RABBIT_EVENT_PEOPLE_MAX_RETRIES` and `RABBIT_EVENT_PEOPLE_RETRY_TTL_MS` env vars are no longer supported (removed in v1.2.0). Use `Config.configure()` or per-listener class attributes instead (see Retry section below).
 
 ## Usage
 
@@ -81,7 +83,7 @@ There are 3 main interfaces to use `EventPeople` on your project:
 
 - Calling `eventPeople.Emitter.trigger(event: Event)` inside your project;
 - Calling `eventPeople.Listener.on(event_name: String)` inside your project;
-- Or extending `eventPeople.BaseListeners` and use it as a daemon.
+- Or extending `eventPeople.BaseListener` and use it as a daemon.
 
 ### Using the Emitter
 
@@ -99,7 +101,7 @@ const event = new Event(event_name, body);
 Emitter.trigger(event);
 
 // Don't forget to close the connection!!!
-Config.close_connection();
+Config.broker.closeConnection();
 ```
 
 [See more details](https://github.com/pin-people/event_people_node/blob/master/examples/emitter.rb)
@@ -122,8 +124,7 @@ Other important aspect of event consumming is the result of the processing we pr
 Given you want to consume a single event inside your project you can use the `eventPeople.Listener.on` method. It consumes a single event, given there are events available to be consumed with the given name pattern.
 
 ```typescript
-import { Config, Event, Listener } from 'event_people';
-import { Base } from 'eventPeople.listeners';
+import { Config, Context, Event, Listener } from 'event_people';
 
 // 3 words event names will be replaced by its 4 word wildcard
 // counterpart: 'payment.payments.pay.all'
@@ -131,7 +132,7 @@ const event_name = 'payment.payments.pay';
 
 new Config();
 
-Listener.on(event_name, (event: Event, context: Base) => {
+Listener.on(event_name, (event: Event, context: Context) => {
 	console.log('');
 	console.log(`  - Received the "${event.name}" message from ${event.origin}:`);
 	console.log(`     Message: ${event.body}`);
@@ -139,14 +140,13 @@ Listener.on(event_name, (event: Event, context: Base) => {
 	context.success();
 });
 
-Config.close_connection();
+Config.broker.closeConnection();
 ```
 
 You can also receive all available messages using a loop:
 
 ```typescript
-import { Config, Event, Listener } from 'event_people';
-import { Base } from 'eventPeople.listeners';
+import { Config, Context, Event, Listener } from 'event_people';
 
 const event_name = 'payment.payments.pay.all';
 let has_events = true;
@@ -154,7 +154,7 @@ let has_events = true;
 while (has_events) {
 	has_events = false;
 
-	await Listener.on('SOME_EVENT', (event: Event, context: Base) => {
+	await Listener.on('SOME_EVENT', (event: Event, context: Context) => {
 		has_events = true;
 		console.log('');
 		console.log(
@@ -166,19 +166,19 @@ while (has_events) {
 	});
 }
 
-Config.close_connection();
+Config.broker.closeConnection();
 ```
 
 [See more details](https://github.com/pin-people/event_people_node/blob/master/examples/listener.rb)
 
 #### Multiple events routing
 
-If your project needs to handle lots of events you can extend `eventPeople.BaseListeners` class to bind how many events you need to instance methods, so whenever an event is received the method will be called automatically.
+If your project needs to handle lots of events you can extend `eventPeople.BaseListener` class to bind how many events you need to instance methods, so whenever an event is received the method will be called automatically.
 
 ```typescript
-import { Event, BaseListeners } from 'event_people';
+import { Event, BaseListener } from 'event_people';
 
-class CustomEventListener extends BaseListeners {
+class CustomEventListener extends BaseListener {
 	pay(event: Event): void {
 		console.log(
 			`Paid #{event.body['amount']} for #{event.body['name']} ~> #{event.name}`,
@@ -226,9 +226,9 @@ CustomEventListener.bindEvent(
 If you have the need to create a deamon to consume messages on background you can use the `eventPeople.Daemon.start` method to do so with ease. Just remember to define or import all the event bindings before starting the daemon.
 
 ```typescript
-import { Daemon, Event, BaseListeners } from 'event_people';
+import { Daemon, Event, BaseListener } from 'event_people';
 
-class CustomEventListener extends BaseListeners {
+class CustomEventListener extends BaseListener {
 	pay(event: Event): void {
 		console.log(
 			`Paid ${event.body.amount} for ${event.body.name} ~> ${event.name}`,
@@ -278,17 +278,50 @@ Daemon.start();
 
 ## Retry and Dead Letter Queue (DLQ)
 
-### Environment variables
+### Configuring retry behavior
 
-- `RABBIT_EVENT_PEOPLE_MAX_RETRIES` — max retry attempts before dead-lettering (default: `3`)
-- `RABBIT_EVENT_PEOPLE_RETRY_TTL_MS` — base delay in ms for retry backoff (default: `1000`)
+Retry settings are configured via code — **not** environment variables.
+
+**Global defaults (optional):**
+
+```typescript
+import { Config } from 'event_people';
+
+Config.configure({
+  maxAttempts: 5,       // default: 3
+  initialDelay: 2000,   // base delay in ms; default: 1000
+  delayStrategy: 'exponential', // 'exponential' or 'fixed'; default: 'exponential'
+  dlqName: 'my_dlq',   // default: '{appName}_dlq'
+});
+```
+
+When `Config.configure()` is not called, hardcoded defaults apply (`maxAttempts=3`, `initialDelay=1000ms`, `delayStrategy='exponential'`).
+
+**Per-listener overrides (BaseListener subclasses):**
+
+```typescript
+import { BaseListener } from 'event_people';
+
+class OrderListener extends BaseListener {
+  static maxAttempts = 5;         // overrides Config.maxAttempts for this listener
+  static initialDelay = 2000;     // overrides Config.initialDelay
+  static delayStrategy = 'fixed'; // overrides Config.delayStrategy
+  static dlqName = 'orders_dlq';  // overrides Config.dlqName
+
+  handleOrder(event: Event): void {
+    // ...
+    this.success();
+  }
+}
+```
 
 ### How it works
 
 On `context.fail()`:
 
-- If retries remain → message published to `{queue}_retry` with exponential backoff delay, then acked
-- If retries exhausted → nacked to DLQ via RabbitMQ DLX
+- If retries remain → message published to `{queue}_retry` with backoff delay (per-message TTL), then acked
+- If retries exhausted → nacked to DLQ via RabbitMQ DLX (nack with requeue=false)
+- If publish to retry queue fails (broker error) → nacked to DLQ (never requeued without retry increment)
 
 On `context.reject()` → nacked directly to DLQ (no retries)
 
@@ -303,7 +336,7 @@ On `context.reject()` → nacked directly to DLQ (no retries)
 |---|---|---|
 | Exchange (DLX) | `{appName}_dlx` | Fanout, receives dead-lettered messages |
 | DLQ | `{appName}_dlq` | Final resting place for failed messages |
-| Retry queue | `{queue_name}_retry` | Holds messages until backoff delay expires |
+| Retry queue | `{queue_name}_retry` | Holds messages with per-message TTL until backoff expires |
 
 ### Usage
 
@@ -329,11 +362,9 @@ function handleOrder(event: Event, context: Context): void {
   }
 }
 
-// Per-listener retry config (overrides env var defaults)
-Listener.on('order.service.created', handleOrder, 5, 'exponential');
-
-// Fixed delay
-Listener.on('user.service.updated', handleOrder, 3, 'fixed');
+// Retry config comes from Config.configure() or per-listener class attributes (v1.2.0)
+Listener.on('order.service.created', handleOrder);
+Listener.on('user.service.updated', handleOrder);
 ```
 
 ## Development

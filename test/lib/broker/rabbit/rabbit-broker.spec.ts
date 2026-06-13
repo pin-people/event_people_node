@@ -59,7 +59,8 @@ describe('broker/rabbit/rabbit-broker.ts', () => {
 
 		await broker.consume(eventName, mockSuccessCallback);
 		expect(queueSpySubscribe).toBeCalledTimes(1);
-		expect(queueSpySubscribe).toBeCalledWith(eventName, mockSuccessCallback);
+		// listenerClass is undefined when called without a class
+		expect(queueSpySubscribe).toBeCalledWith(eventName, mockSuccessCallback, undefined);
 	});
 
 	it('produce() - Should call topic.produce correctly', async () => {

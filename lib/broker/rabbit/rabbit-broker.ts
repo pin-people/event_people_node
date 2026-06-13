@@ -3,6 +3,7 @@ import { connect, Channel, Connection } from 'amqplib';
 import { Config } from '../../config';
 import { Event } from '../../event';
 import { BaseBroker } from '../base-broker';
+import { BaseListener } from '../../listeners/base-listener';
 import { Queue } from './queue';
 import { Topic } from './topic';
 
@@ -40,11 +41,9 @@ export class RabbitBroker implements BaseBroker {
 	public async consume(
 		eventName: string,
 		callback: (event: Event, context: Context) => void,
-		maxAttempts?: number,
-		delayStrategy?: string,
-		dlqName?: string,
+		listenerClass?: typeof BaseListener,
 	): Promise<void> {
-		this.queue.subscribe(eventName, callback, maxAttempts, delayStrategy, dlqName);
+		this.queue.subscribe(eventName, callback, listenerClass);
 	}
 
 	public async produce(event: Event): Promise<void> {
