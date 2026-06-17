@@ -68,7 +68,7 @@ describe('broker/rabbit/queue.ts', () => {
 			dlxName,
 			'fanout',
 			{
-				durable: true,
+			durable: true,
 			},
 		);
 
