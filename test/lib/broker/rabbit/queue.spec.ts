@@ -67,7 +67,9 @@ describe('broker/rabbit/queue.ts', () => {
 		expect(assertExchangeSpy).toBeCalledWith(
 			dlxName,
 			'fanout',
-			{ durable: true },
+			{
+				durable: true,
+			},
 		);
 
 		// DLQ declared and bound to DLX
@@ -180,12 +182,12 @@ describe('broker/rabbit/queue.ts', () => {
 			};
 
 			let capturedContext: Context | undefined;
-			const triggerMethod = jest.fn().mockImplementation(
-				(_event: Event, context: Context) => {
+			const triggerMethod = jest
+				.fn()
+				.mockImplementation((_event: Event, context: Context) => {
 					capturedContext = context;
 					context.fail();
-				},
-			);
+				});
 
 			rabbitQueue['callback'](
 				deliveryInfo,
@@ -221,9 +223,11 @@ describe('broker/rabbit/queue.ts', () => {
 				properties: { headers: { 'x-event-people-retries': 1 } } as any,
 			};
 
-			const triggerMethod = jest.fn().mockImplementation((_event: Event, context: Context) => {
-				context.fail();
-			});
+			const triggerMethod = jest
+				.fn()
+				.mockImplementation((_event: Event, context: Context) => {
+					context.fail();
+				});
 
 			// Mock publish to succeed so it doesn't affect nack logic
 			(mockChannel.publish as jest.Mock).mockReturnValue(true);
@@ -255,9 +259,11 @@ describe('broker/rabbit/queue.ts', () => {
 			};
 
 			let capturedContext: Context | undefined;
-			const triggerMethod = jest.fn().mockImplementation((_event: Event, context: Context) => {
-				capturedContext = context;
-			});
+			const triggerMethod = jest
+				.fn()
+				.mockImplementation((_event: Event, context: Context) => {
+					capturedContext = context;
+				});
 
 			rabbitQueue['callback'](
 				deliveryInfo,
@@ -288,9 +294,11 @@ describe('broker/rabbit/queue.ts', () => {
 			};
 
 			let capturedContext: Context | undefined;
-			const triggerMethod = jest.fn().mockImplementation((_event: Event, context: Context) => {
-				capturedContext = context;
-			});
+			const triggerMethod = jest
+				.fn()
+				.mockImplementation((_event: Event, context: Context) => {
+					capturedContext = context;
+				});
 
 			rabbitQueue['callback'](
 				deliveryInfo,
@@ -312,11 +320,11 @@ describe('broker/rabbit/queue.ts', () => {
 			}
 
 			let capturedContext: Context | undefined;
-			const triggerMethod = jest.fn().mockImplementation(
-				(_event: Event, context: Context) => {
+			const triggerMethod = jest
+				.fn()
+				.mockImplementation((_event: Event, context: Context) => {
 					capturedContext = context;
-				},
-			);
+				});
 
 			// Capture the consume handler when subscribe is called
 			let consumeHandler: ((msg: any) => void) | undefined;
