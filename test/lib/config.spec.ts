@@ -69,7 +69,12 @@ describe('lib/config.ts', () => {
 		});
 
 		it('should set multiple options at once', () => {
-			Config.configure({ maxAttempts: 7, initialDelay: 500, delayStrategy: 'fixed', dlqName: 'my_dlq' });
+			Config.configure({
+				maxAttempts: 7,
+				initialDelay: 500,
+				delayStrategy: 'fixed',
+				dlqName: 'my_dlq',
+			});
 			expect(Config.maxAttempts).toBe(7);
 			expect(Config.initialDelay).toBe(500);
 			expect(Config.delayStrategy).toBe('fixed');
@@ -103,7 +108,12 @@ describe('lib/config.ts', () => {
 		});
 
 		it('should reflect values set via configure()', () => {
-			Config.configure({ maxAttempts: 5, initialDelay: 2500, delayStrategy: 'fixed', dlqName: 'custom_dlq' });
+			Config.configure({
+				maxAttempts: 5,
+				initialDelay: 2500,
+				delayStrategy: 'fixed',
+				dlqName: 'custom_dlq',
+			});
 
 			const config = Config.getRetryConfig();
 

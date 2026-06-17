@@ -29,7 +29,11 @@ describe('lib/listener.ts', () => {
 
 			expect(consumeSpy).toBeCalledTimes(1);
 			// listenerClass is undefined when called without a class (plain callback usage)
-			expect(consumeSpy).toBeCalledWith('some.custom.action', jestCallback, undefined);
+			expect(consumeSpy).toBeCalledWith(
+				'some.custom.action',
+				jestCallback,
+				undefined,
+			);
 			expect(jestCallback).toBeCalledTimes(1);
 		});
 
@@ -44,7 +48,11 @@ describe('lib/listener.ts', () => {
 			Listener.on('some.custom.action', jestCallback);
 
 			expect(consumeSpy).toBeCalledTimes(1);
-			expect(consumeSpy).toBeCalledWith('some.custom.action', jestCallback, undefined);
+			expect(consumeSpy).toBeCalledWith(
+				'some.custom.action',
+				jestCallback,
+				undefined,
+			);
 		});
 
 		it('should throw event name error', () => {

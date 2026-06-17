@@ -21,7 +21,12 @@ describe('broker/rabbit/rabbit-context', () => {
 		jest.clearAllMocks();
 	});
 
-	const makeContext = (maxRetries = 3, retryCount = 0, delayStrategy = 'exponential', initialDelay = 1000) =>
+	const makeContext = (
+		maxRetries = 3,
+		retryCount = 0,
+		delayStrategy = 'exponential',
+		initialDelay = 1000,
+	) =>
 		new RabbitContext(
 			mockChannel as Channel,
 			message,

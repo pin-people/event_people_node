@@ -22,7 +22,11 @@ export class RabbitContext implements Context {
 		this.maxRetries = maxRetries;
 		this.dlqName = dlqName;
 		this.retryCount = retryCount;
-		this.retryManager = new RetryManager(maxRetries, delayStrategy, initialDelay);
+		this.retryManager = new RetryManager(
+			maxRetries,
+			delayStrategy,
+			initialDelay,
+		);
 	}
 
 	/**
