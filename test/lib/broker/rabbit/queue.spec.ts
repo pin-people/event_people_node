@@ -11,7 +11,11 @@ import {
 import { setEnvs } from '../../../../example/set-envs';
 
 describe('broker/rabbit/queue.ts', () => {
-	let routingKey: string, queueName: string, dlqName: string, dlxName: string, retryQueueName: string;
+	let routingKey: string,
+		queueName: string,
+		dlqName: string,
+		dlxName: string,
+		retryQueueName: string;
 
 	beforeAll(async () => {
 		setEnvs();
@@ -60,7 +64,11 @@ describe('broker/rabbit/queue.ts', () => {
 		await queue.subscribe(routingKey, mockSuccessCallback);
 
 		// DLX exchange declared
-		expect(assertExchangeSpy).toBeCalledWith(dlxName, 'fanout', { durable: true });
+		expect(assertExchangeSpy).toBeCalledWith(
+			dlxName,
+			'fanout',
+			{ durable: true },
+		);
 
 		// DLQ declared and bound to DLX
 		expect(assertQueueSpy).toBeCalledWith(dlqName, { durable: true });
@@ -172,10 +180,12 @@ describe('broker/rabbit/queue.ts', () => {
 			};
 
 			let capturedContext: Context | undefined;
-			const triggerMethod = jest.fn().mockImplementation((_event: Event, context: Context) => {
-				capturedContext = context;
-				context.fail();
-			});
+			const triggerMethod = jest.fn().mockImplementation(
+				(_event: Event, context: Context) => {
+					capturedContext = context;
+					context.fail();
+				},
+			);
 
 			rabbitQueue['callback'](
 				deliveryInfo,
@@ -302,16 +312,20 @@ describe('broker/rabbit/queue.ts', () => {
 			}
 
 			let capturedContext: Context | undefined;
-			const triggerMethod = jest.fn().mockImplementation((_event: Event, context: Context) => {
-				capturedContext = context;
-			});
+			const triggerMethod = jest.fn().mockImplementation(
+				(_event: Event, context: Context) => {
+					capturedContext = context;
+				},
+			);
 
 			// Capture the consume handler when subscribe is called
 			let consumeHandler: ((msg: any) => void) | undefined;
-			(mockChannel.consume as jest.Mock).mockImplementation((_queue: string, handler: (msg: any) => void) => {
-				consumeHandler = handler;
-				return Promise.resolve(undefined);
-			});
+			(mockChannel.consume as jest.Mock).mockImplementation(
+				(_queue: string, handler: (msg: any) => void) => {
+					consumeHandler = handler;
+					return Promise.resolve(undefined);
+				},
+			);
 
 			await rabbitQueue.subscribe(routingKey, triggerMethod, OneRetryListener);
 
