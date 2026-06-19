@@ -9,6 +9,14 @@ export declare type ListenerConfig = {
     eventName: string;
 };
 export declare class BaseListener {
+    /**
+     * Optional class-level retry settings. When declared on a subclass, they override Config defaults
+     * for that specific listener. All are optional — absent attributes fall back to Config defaults.
+     */
+    static maxAttempts?: number;
+    static initialDelay?: number;
+    static delayStrategy?: string;
+    static dlqName?: string;
     context: Context;
     constructor(context: Context);
     /**

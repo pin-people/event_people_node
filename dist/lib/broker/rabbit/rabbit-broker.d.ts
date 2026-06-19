@@ -2,6 +2,7 @@ import { Context } from '@lib/context';
 import { Connection } from 'amqplib';
 import { Event } from '../../event';
 import { BaseBroker } from '../base-broker';
+import { BaseListener } from '../../listeners/base-listener';
 export declare class RabbitBroker implements BaseBroker {
     connection: Connection;
     consumers: [];
@@ -18,7 +19,7 @@ export declare class RabbitBroker implements BaseBroker {
      * @returns {Promise<Channel>}
      */
     private getChannel;
-    consume(eventName: string, callback: (event: Event, context: Context) => void, maxAttempts?: number, delayStrategy?: string, dlqName?: string): Promise<void>;
+    consume(eventName: string, callback: (event: Event, context: Context) => void, listenerClass?: typeof BaseListener): Promise<void>;
     produce(event: Event): Promise<void>;
     closeConnection(): Promise<void>;
 }

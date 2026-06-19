@@ -14,7 +14,7 @@ class ListenersManager {
             listener_1.Listener.on(config.eventName, (event, context) => {
                 const instance = new config.listener(context);
                 instance[config.method](event);
-            });
+            }, config.listener);
         });
     }
     /**

@@ -13,28 +13,41 @@ class Queue {
         this.topic = topic;
     }
     /**
+     * Resolves the effective retry configuration by merging listener class static
+     * attributes over the global Config defaults.
+     * Precedence: listener static prop > Config.configure value > hardcoded default.
+     */
+    resolveRetryConfig(listenerClass) {
+        const base = config_1.Config.getRetryConfig();
+        if (!listenerClass)
+            return base;
+        return {
+            maxAttempts: listenerClass.maxAttempts ?? base.maxAttempts,
+            initialDelay: listenerClass.initialDelay ?? base.initialDelay,
+            delayStrategy: listenerClass.delayStrategy ?? base.delayStrategy,
+            dlqName: listenerClass.dlqName ?? base.dlqName,
+        };
+    }
+    /**
      * Makes a subscription to receive events for a certain routingKey.
-     * Declares DLX, DLQ and retry queue topology before binding.
+     * Declares the application-level DLQ and retry queue topology before binding.
+     * Retry configuration is resolved from listener class attributes (if provided),
+     * falling back to Config defaults.
      * @param {string} routingKey - name path for the queue. Example: messages.*.all
      * @param {Function}  method - function to execute actions after event received
-     * @param {number} maxAttempts - max delivery attempts before sending to DLQ
-     * @param {string} delayStrategy - 'exponential' or 'fixed'
-     * @param {string} dlqName - dead-letter queue name
+     * @param {typeof BaseListener} listenerClass - optional listener class for per-listener retry config
      * @returns {Promise<void>}
      */
-    async subscribe(routingKey, method, maxAttempts, delayStrategy, dlqName) {
-        const retryConfig = config_1.Config.getRetryConfig();
-        const resolvedMaxAttempts = maxAttempts ?? retryConfig.maxAttempts;
-        const resolvedDelayStrategy = delayStrategy ?? retryConfig.delayStrategy;
-        const resolvedDlqName = dlqName ?? retryConfig.dlqName;
+    async subscribe(routingKey, method, listenerClass) {
+        const retryConfig = this.resolveRetryConfig(listenerClass);
         const queueName = this.queueName(routingKey);
-        const dlxName = `${config_1.Config.APP_NAME}_dlx`;
         const retryQueueName = `${queueName}_retry`;
-        // Declare DLX (fanout exchange)
-        await this.channel.assertExchange(dlxName, 'fanout', { durable: true });
-        // Declare DLQ and bind to DLX
-        await this.channel.assertQueue(resolvedDlqName, { durable: true });
-        await this.channel.bindQueue(resolvedDlqName, dlxName, '');
+        const dlqName = retryConfig.dlqName;
+        // Declare the application-level DLQ as a plain durable queue. There is no DLX
+        // fanout exchange or binding: failed messages are published to this queue
+        // directly (see RabbitContext). Keeping it argument-free means there is no
+        // broker-side dead-letter topology to drift between library versions.
+        await this.channel.assertQueue(dlqName, { durable: true });
         // Declare retry queue — TTL is set per-message via expiration, not x-message-ttl
         await this.channel.assertQueue(retryQueueName, {
             durable: true,
@@ -43,44 +56,44 @@ class Queue {
                 'x-dead-letter-routing-key': queueName,
             },
         });
-        // Declare main queue with DLX routing
+        // Declare the main queue argument-free. Dead-lettering is handled at the
+        // application level, so the main queue carries no x-dead-letter-exchange
+        // argument and upgrades over legacy queues never hit PRECONDITION_FAILED.
         const assertedQueue = await this.channel.assertQueue(queueName, {
             exclusive: false,
             durable: true,
-            arguments: {
-                'x-dead-letter-exchange': dlxName,
-            },
         });
         await this.channel.prefetch(1);
         await this.channel.bindQueue(assertedQueue.queue, this.topic.getTopic(), routingKey);
         await this.channel.consume(queueName, (message) => {
             if (!message)
                 return;
-            const retryCount = Math.max(0, Number(message.properties.headers?.['x-event-people-retries'] ?? 0));
             const eventPayload = JSON.parse(message.content.toString());
             const deliveryInfo = {
                 deliveryTag: String(message.fields.deliveryTag),
                 routingKey: message.fields.routingKey,
             };
-            this.callback(deliveryInfo, eventPayload, message, method, queueName, resolvedMaxAttempts, resolvedDelayStrategy, retryCount, resolvedDlqName);
+            this.callback(deliveryInfo, eventPayload, message, method, listenerClass);
         });
     }
     /**
-     * Callback to create new rabbit context to handle received message
+     * Callback to create new rabbit context to handle received message.
+     * Builds Event + Context from broker delivery and calls user callback.
+     * Retry config is resolved from listener class attributes (if provided),
+     * falling back to Config defaults.
      * @param {DeliveryInfo} deliveryInfo - info about received queue message
      * @param {Record<string, any>} payload - the message body
      * @param {Message} message - raw AMQP message
      * @param {Function} method - next callback to execute
-     * @param {string} queueName - name of the consuming queue
-     * @param {number} maxAttempts - max delivery attempts
-     * @param {string} delayStrategy - retry delay strategy
-     * @param {number} retryCount - current retry count from headers
-     * @param {string} dlqName - dead-letter queue name
+     * @param {typeof BaseListener} listenerClass - optional listener class for per-listener retry config
      * @returns {void}
      */
-    callback(deliveryInfo, payload, message, method, queueName, maxAttempts, delayStrategy, retryCount, dlqName) {
+    callback(deliveryInfo, payload, message, method, listenerClass) {
+        const retryConfig = this.resolveRetryConfig(listenerClass);
+        const queueName = this.queueName(deliveryInfo.routingKey);
+        const retryCount = Math.max(0, Number(message.properties?.headers?.['x-event-people-retries'] ?? 0));
         const event = new event_1.Event(deliveryInfo.routingKey, payload, 1.0, retryCount);
-        const context = new rabbit_context_1.RabbitContext(this.channel, message, queueName, maxAttempts, delayStrategy, retryCount, dlqName);
+        const context = new rabbit_context_1.RabbitContext(this.channel, message, queueName, retryConfig.maxAttempts, retryConfig.initialDelay, retryConfig.delayStrategy, retryCount, retryConfig.dlqName);
         method(event, context);
     }
     /**

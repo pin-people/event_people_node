@@ -9,11 +9,12 @@ class Config {
     static VHOST_NAME;
     static URL;
     static FULL_URL;
-    static maxAttempts;
-    static delayStrategy;
+    static maxAttempts = 3;
+    static initialDelay = 1000;
+    static delayStrategy = 'exponential';
     static dlqName;
     /**
-     *Setup for the Message broker that will handle events implementing BaseBroker
+     * Setup for the Message broker that will handle events implementing BaseBroker
      * @param {BaseBroker} broker
      */
     constructor(broker) {
@@ -22,7 +23,7 @@ class Config {
     /**
      * Setup for the Message broker that will handle events implementing BaseBroker
      * Initialize getting the broker connection
-     * * @param {BaseBroker} broker
+     * @param {BaseBroker} broker
      */
     static async init() {
         Config.URL = process.env.RABBIT_URL;
@@ -30,20 +31,42 @@ class Config {
         Config.APP_NAME = process.env.RABBIT_EVENT_PEOPLE_APP_NAME;
         Config.TOPIC_NAME = process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME;
         Config.FULL_URL = `${Config.URL}/${Config.VHOST_NAME}`;
-        Config.maxAttempts = parseInt(process.env.RABBIT_EVENT_PEOPLE_MAX_RETRIES || '3', 10);
-        Config.delayStrategy = 'exponential';
-        Config.dlqName = `${Config.APP_NAME}_dlq`;
+        // Apply hardcoded defaults only if not already set via configure()
+        if (Config.maxAttempts === undefined)
+            Config.maxAttempts = 3;
+        if (Config.initialDelay === undefined)
+            Config.initialDelay = 1000;
+        if (Config.delayStrategy === undefined)
+            Config.delayStrategy = 'exponential';
+        if (!Config.dlqName)
+            Config.dlqName = `${Config.APP_NAME}_dlq`;
         Config.broker ? Config.broker : (Config.broker = new rabbit_broker_1.RabbitBroker());
         await Config.broker.getConnection();
     }
     /**
-     * Returns the retry configuration object
-     * @returns {{ maxAttempts: number; delayStrategy: string; dlqName: string }}
+     * Sets global retry defaults in code. Optional — when not called, hardcoded defaults apply.
+     * Connection attributes (appName, url, vhost, topic) are always read from environment variables.
+     * @param {RetryConfigOptions} options - { maxAttempts, initialDelay, delayStrategy, dlqName }
+     */
+    static configure(options) {
+        if (options.maxAttempts !== undefined)
+            Config.maxAttempts = options.maxAttempts;
+        if (options.initialDelay !== undefined)
+            Config.initialDelay = options.initialDelay;
+        if (options.delayStrategy !== undefined)
+            Config.delayStrategy = options.delayStrategy;
+        if (options.dlqName !== undefined)
+            Config.dlqName = options.dlqName;
+    }
+    /**
+     * Returns the active global retry configuration.
+     * @returns {{ maxAttempts: number; initialDelay: number; delayStrategy: string; dlqName: string }}
      */
     static getRetryConfig() {
         return {
-            maxAttempts: Config.maxAttempts,
-            delayStrategy: Config.delayStrategy,
+            maxAttempts: Config.maxAttempts ?? 3,
+            initialDelay: Config.initialDelay ?? 1000,
+            delayStrategy: Config.delayStrategy ?? 'exponential',
             dlqName: Config.dlqName,
         };
     }

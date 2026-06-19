@@ -5,6 +5,14 @@ const listeners_manager_1 = require("./listeners-manager");
 const config_1 = require("../config");
 const __1 = require("..");
 class BaseListener {
+    /**
+     * Optional class-level retry settings. When declared on a subclass, they override Config defaults
+     * for that specific listener. All are optional — absent attributes fall back to Config defaults.
+     */
+    static maxAttempts;
+    static initialDelay;
+    static delayStrategy;
+    static dlqName;
     context;
     constructor(context) {
         this.context = context;

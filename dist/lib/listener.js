@@ -6,17 +6,16 @@ const errors_1 = require("./utils/errors");
 class Listener {
     /**
      * Calls the broker consume method to receive stream events from certain queue.
-     * Optional retry parameters fall back to Config defaults when not provided.
+     * Retry configuration is read from the listener class attributes (if provided),
+     * falling back to Config defaults.
      * @param {string} eventName - string for queue event name
      * @param callback - action callback function to execute after consuming the event
-     * @param {number} [maxAttempts] - max delivery attempts (default: Config.maxAttempts)
-     * @param {string} [delayStrategy] - 'exponential' or 'fixed' (default: Config.delayStrategy)
-     * @param {string} [dlqName] - dead-letter queue name (default: Config.dlqName)
+     * @param {typeof BaseListener} listenerClass - optional listener class for per-listener retry config
      */
-    static on(eventName, callback, maxAttempts, delayStrategy, dlqName) {
+    static on(eventName, callback, listenerClass) {
         if (eventName.length <= 0)
             throw new errors_1.MissingAttributeError('Event name');
-        config_1.Config.broker.consume(eventName, callback, maxAttempts, delayStrategy, dlqName);
+        config_1.Config.broker.consume(eventName, callback, listenerClass);
     }
     /**
      * Normalizes event name with 'all' suffix
