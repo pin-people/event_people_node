@@ -14,7 +14,6 @@ describe('broker/rabbit/queue.ts', () => {
 	let routingKey: string,
 		queueName: string,
 		dlqName: string,
-		dlxName: string,
 		retryQueueName: string;
 
 	beforeAll(async () => {
@@ -24,7 +23,6 @@ describe('broker/rabbit/queue.ts', () => {
 		const appName = process.env.RABBIT_EVENT_PEOPLE_APP_NAME;
 		queueName = `${appName}-${routingKey}`;
 		dlqName = `${appName}_dlq`;
-		dlxName = `${appName}_dlx`;
 		retryQueueName = `${queueName}_retry`;
 
 		jest
@@ -48,7 +46,7 @@ describe('broker/rabbit/queue.ts', () => {
 		(mockChannel.consume as jest.Mock).mockResolvedValue(undefined);
 	});
 
-	it('subscribe() - Should declare full DLX/DLQ/retry topology, bind and consume', async () => {
+	it('subscribe() - Should declare app-level DLQ/retry topology, bind and consume', async () => {
 		const topic = new Topic(
 			mockChannel as Channel,
 			String(process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME),
@@ -63,18 +61,11 @@ describe('broker/rabbit/queue.ts', () => {
 		const queue = new Queue(mockChannel as Channel, topic);
 		await queue.subscribe(routingKey, mockSuccessCallback);
 
-		// DLX exchange declared
-		expect(assertExchangeSpy).toBeCalledWith(
-			dlxName,
-			'fanout',
-			{
-			durable: true,
-			},
-		);
+		// No DLX fanout exchange is declared (dead-lettering is app-level)
+		expect(assertExchangeSpy).not.toBeCalled();
 
-		// DLQ declared and bound to DLX
+		// DLQ declared as a plain durable queue, with no DLX binding
 		expect(assertQueueSpy).toBeCalledWith(dlqName, { durable: true });
-		expect(bindQueueSpy).toBeCalledWith(dlqName, dlxName, '');
 
 		// Retry queue declared (no queue-level TTL)
 		expect(assertQueueSpy).toBeCalledWith(retryQueueName, {
@@ -85,25 +76,50 @@ describe('broker/rabbit/queue.ts', () => {
 			},
 		});
 
-		// Main queue declared with DLX
+		// Main queue declared argument-free (no dead-letter argument)
 		expect(assertQueueSpy).toBeCalledWith(queueName, {
 			exclusive: false,
 			durable: true,
-			arguments: { 'x-dead-letter-exchange': dlxName },
 		});
 
-		expect(prefetchSpy).toBeCalledTimes(1);
-		expect(prefetchSpy).toBeCalledWith(1);
-
-		// Main queue bound to topic exchange with routing key
+		// The DLQ must only be bound to the topic exchange for the main queue, never
+		// to a DLX — bindQueue is called once, for the main queue's topic binding.
+		expect(bindQueueSpy).toBeCalledTimes(1);
 		expect(bindQueueSpy).toBeCalledWith(
 			queueName,
 			String(process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME),
 			routingKey,
 		);
 
+		expect(prefetchSpy).toBeCalledTimes(1);
+		expect(prefetchSpy).toBeCalledWith(1);
+
 		expect(consumeSpy).toBeCalledTimes(1);
 		expect(consumeSpy).toBeCalledWith(queueName, expect.any(Function));
+	});
+
+	it('subscribe() - main queue assertQueue carries NO dead-letter argument', async () => {
+		const topic = new Topic(
+			mockChannel as Channel,
+			String(process.env.RABBIT_EVENT_PEOPLE_TOPIC_NAME),
+		);
+		const assertQueueSpy = jest.spyOn(mockChannel, 'assertQueue');
+
+		const queue = new Queue(mockChannel as Channel, topic);
+		await queue.subscribe(routingKey, mockSuccessCallback);
+
+		const mainQueueCall = assertQueueSpy.mock.calls.find(
+			(call) => call[0] === queueName,
+		);
+		expect(mainQueueCall).toBeDefined();
+
+		const options = mainQueueCall![1] as {
+			arguments?: Record<string, unknown>;
+		};
+		// No arguments object at all, or one without any dead-letter argument.
+		const args = options?.arguments ?? {};
+		expect(args).not.toHaveProperty('x-dead-letter-exchange');
+		expect(args).not.toHaveProperty('x-dead-letter-routing-key');
 	});
 
 	it('callback() - should build Event + Context and call trigger method', async () => {
@@ -126,10 +142,7 @@ describe('broker/rabbit/queue.ts', () => {
 		const triggerMethod = jest
 			.fn()
 			.mockImplementation((event: Event, context: Context) => {
-				console.log(
-					'Trigger Method Message received for => ',
-					event.getName(),
-				);
+				console.log('Trigger Method Message received for => ', event.getName());
 				context.reject();
 			});
 
@@ -229,7 +242,7 @@ describe('broker/rabbit/queue.ts', () => {
 					context.fail();
 				});
 
-			// Mock publish to succeed so it doesn't affect nack logic
+			// Mock publish to succeed so the exhausted path publishes to the DLQ + acks
 			(mockChannel.publish as jest.Mock).mockReturnValue(true);
 
 			rabbitQueue['callback'](
@@ -240,10 +253,17 @@ describe('broker/rabbit/queue.ts', () => {
 				StrictListener,
 			);
 
-			// retryCount=1 >= maxAttempts=1 → nack to DLQ (not publish to retry)
-			expect(mockChannel.nack).toBeCalledTimes(1);
-			expect(mockChannel.nack).toBeCalledWith(expect.anything(), false, false);
-			expect(mockChannel.publish).not.toBeCalled();
+			// retryCount=1 >= maxAttempts=1 → publish to app-level DLQ + ack (no nack)
+			const dlqName = `${process.env.RABBIT_EVENT_PEOPLE_APP_NAME}_dlq`;
+			expect(mockChannel.publish).toBeCalledTimes(1);
+			expect(mockChannel.publish).toBeCalledWith(
+				'',
+				dlqName,
+				expect.any(Buffer),
+				expect.objectContaining({ persistent: true }),
+			);
+			expect(mockChannel.ack).toBeCalledTimes(1);
+			expect(mockChannel.nack).not.toBeCalled();
 		});
 
 		it('should use Config default maxAttempts=3 when listener has no static maxAttempts', () => {
