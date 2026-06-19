@@ -42,7 +42,7 @@ export class RabbitContext implements Context {
 
 	/**
 	 * If retry attempts remain, republish to the retry queue with exponential/fixed delay.
-	 * Otherwise nack without requeue (triggers DLX → DLQ).
+	 * Otherwise publish the message to the application-level DLQ and ack.
 	 */
 	public fail(): void {
 		if (this.retryManager.shouldRetry(this.retryCount)) {
@@ -71,14 +71,56 @@ export class RabbitContext implements Context {
 				}
 			}
 		} else {
-			this.channel.nack(this.message, false, false);
+			// Retries exhausted: publish the message to the application-level DLQ + ack.
+			this.deadLetter();
 		}
 	}
 
 	/**
-	 * Reject the message — nack without requeue, triggers DLX → DLQ.
+	 * Reject the message — route it directly to the application-level DLQ (no retries).
 	 */
 	public reject(): void {
-		this.channel.nack(this.message, false, false);
+		this.deadLetter();
+	}
+
+	/**
+	 * Publish the current message to the application-level DLQ via the default
+	 * exchange (routing key = DLQ name) and ack. On a missing channel/DLQ name or
+	 * any publish failure, fall back to nack(requeue=false) so a failed message is
+	 * never requeued to the main queue without a retry increment.
+	 */
+	private deadLetter(): void {
+		if (!this.channel || !this.dlqName) {
+			this.nackWithoutRequeue();
+			return;
+		}
+
+		try {
+			const published = this.channel.publish(
+				'',
+				this.dlqName,
+				Buffer.from(this.message.content),
+				{
+					persistent: true,
+					headers: { 'x-event-people-retries': this.retryCount },
+					contentType: this.message.properties.contentType,
+				},
+			);
+			if (!published) {
+				this.nackWithoutRequeue();
+				return;
+			}
+			this.channel.ack(this.message, false);
+		} catch (_err) {
+			this.nackWithoutRequeue();
+		}
+	}
+
+	private nackWithoutRequeue(): void {
+		try {
+			this.channel.nack(this.message, false, false);
+		} catch (_nackErr) {
+			// Channel already dead; message will be redelivered on reconnect.
+		}
 	}
 }
