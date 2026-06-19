@@ -317,13 +317,18 @@ class OrderListener extends BaseListener {
 
 ### How it works
 
+Dead-lettering is handled **at the application level**: there is no RabbitMQ
+dead-letter-exchange (DLX). The library publishes failed messages directly to the
+plain `{appName}_dlq` queue via the default exchange.
+
 On `context.fail()`:
 
 - If retries remain → message published to `{queue}_retry` with backoff delay (per-message TTL), then acked
-- If retries exhausted → nacked to DLQ via RabbitMQ DLX (nack with requeue=false)
-- If publish to retry queue fails (broker error) → nacked to DLQ (never requeued without retry increment)
+- If retries exhausted → message published to `{appName}_dlq` (persistent, header `x-event-people-retries`), then acked
+- If publish to retry queue fails (broker error) → nacked without requeue (never requeued without retry increment)
+- If publish to the DLQ fails (broker error / no channel) → nacked without requeue
 
-On `context.reject()` → nacked directly to DLQ (no retries)
+On `context.reject()` → message published directly to `{appName}_dlq` and acked (no retries); on publish failure or missing DLQ it falls back to nack without requeue
 
 **Delay strategies:**
 
@@ -334,9 +339,22 @@ On `context.reject()` → nacked directly to DLQ (no retries)
 
 | Queue/Exchange | Name | Purpose |
 |---|---|---|
-| Exchange (DLX) | `{appName}_dlx` | Fanout, receives dead-lettered messages |
-| DLQ | `{appName}_dlq` | Final resting place for failed messages |
+| Main queue | `{appName}-{event}.all` | Declared **argument-free** (no dead-letter argument) |
+| DLQ | `{appName}_dlq` | Plain durable queue; the library publishes failed messages to it directly |
 | Retry queue | `{queue_name}_retry` | Holds messages with per-message TTL until backoff expires |
+
+No DLX fanout exchange or DLQ binding is created — dead-lettering is performed by the library, not the broker.
+
+### Migrating from the broker-DLX version (spec v1.1.0 → v1.1.1)
+
+> **Not a drop-in upgrade.** Earlier versions declared the main queue with an
+> immutable `x-dead-letter-exchange` argument. That argument cannot be changed by
+> redeclaring the queue, so the first argument-free `assertQueue` from this version
+> hits `PRECONDITION_FAILED` and the consumer crash-loops.
+>
+> Operators must **delete the old main queue once** (it will be recreated
+> argument-free on the next subscribe). The legacy `{appName}_dlx` fanout exchange
+> is no longer used and can be removed at leisure.
 
 ### Usage
 

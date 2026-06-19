@@ -1,5 +1,5 @@
 spec_version: "1.2.0"
-implementation_version: "0.2.0"
+implementation_version: "0.3.0"
 language: typescript
 package: "event_people (npm)"
 status: stable
