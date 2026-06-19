@@ -24,11 +24,11 @@ export const mockConnection: Partial<Connection> = {
 export class MockContext implements Context {
 	channel: Channel;
 	message: Message;
-	maxRetries: number = 3;
+	maxRetries = 3;
 	get isLastRetry(): boolean {
 		return false;
 	}
-	dlqName: string = 'test_dlq';
+	dlqName = 'test_dlq';
 	constructor(channel: Channel, message: Message) {
 		this.channel = channel;
 		this.message = message;

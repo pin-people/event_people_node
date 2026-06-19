@@ -15,9 +15,9 @@ export class Config {
 	public static VHOST_NAME: string;
 	public static URL: string;
 	public static FULL_URL: string;
-	public static maxAttempts: number = 3;
-	public static initialDelay: number = 1000;
-	public static delayStrategy: string = 'exponential';
+	public static maxAttempts = 3;
+	public static initialDelay = 1000;
+	public static delayStrategy = 'exponential';
 	public static dlqName: string;
 
 	/**
@@ -41,14 +41,11 @@ export class Config {
 		Config.FULL_URL = `${Config.URL}/${Config.VHOST_NAME}`;
 
 		// Apply hardcoded defaults only if not already set via configure()
-		if (Config.maxAttempts === undefined)
-			Config.maxAttempts = 3;
-		if (Config.initialDelay === undefined)
-			Config.initialDelay = 1000;
+		if (Config.maxAttempts === undefined) Config.maxAttempts = 3;
+		if (Config.initialDelay === undefined) Config.initialDelay = 1000;
 		if (Config.delayStrategy === undefined)
 			Config.delayStrategy = 'exponential';
-		if (!Config.dlqName)
-			Config.dlqName = `${Config.APP_NAME}_dlq`;
+		if (!Config.dlqName) Config.dlqName = `${Config.APP_NAME}_dlq`;
 
 		Config.broker ? Config.broker : (Config.broker = new RabbitBroker());
 		await Config.broker.getConnection();
@@ -66,8 +63,7 @@ export class Config {
 			Config.initialDelay = options.initialDelay;
 		if (options.delayStrategy !== undefined)
 			Config.delayStrategy = options.delayStrategy;
-		if (options.dlqName !== undefined)
-			Config.dlqName = options.dlqName;
+		if (options.dlqName !== undefined) Config.dlqName = options.dlqName;
 	}
 
 	/**
