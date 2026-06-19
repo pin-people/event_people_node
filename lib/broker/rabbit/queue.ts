@@ -36,7 +36,7 @@ export class Queue {
 
 	/**
 	 * Makes a subscription to receive events for a certain routingKey.
-	 * Declares DLX, DLQ and retry queue topology before binding.
+	 * Declares the application-level DLQ and retry queue topology before binding.
 	 * Retry configuration is resolved from listener class attributes (if provided),
 	 * falling back to Config defaults.
 	 * @param {string} routingKey - name path for the queue. Example: messages.*.all
@@ -52,16 +52,14 @@ export class Queue {
 		const retryConfig = this.resolveRetryConfig(listenerClass);
 
 		const queueName = this.queueName(routingKey);
-		const dlxName = `${Config.APP_NAME}_dlx`;
 		const retryQueueName = `${queueName}_retry`;
 		const dlqName = retryConfig.dlqName;
 
-		// Declare DLX (fanout exchange)
-		await this.channel.assertExchange(dlxName, 'fanout', { durable: true });
-
-		// Declare DLQ and bind to DLX
+		// Declare the application-level DLQ as a plain durable queue. There is no DLX
+		// fanout exchange or binding: failed messages are published to this queue
+		// directly (see RabbitContext). Keeping it argument-free means there is no
+		// broker-side dead-letter topology to drift between library versions.
 		await this.channel.assertQueue(dlqName, { durable: true });
-		await this.channel.bindQueue(dlqName, dlxName, '');
 
 		// Declare retry queue — TTL is set per-message via expiration, not x-message-ttl
 		await this.channel.assertQueue(retryQueueName, {
@@ -72,13 +70,12 @@ export class Queue {
 			},
 		});
 
-		// Declare main queue with DLX routing
+		// Declare the main queue argument-free. Dead-lettering is handled at the
+		// application level, so the main queue carries no x-dead-letter-exchange
+		// argument and upgrades over legacy queues never hit PRECONDITION_FAILED.
 		const assertedQueue = await this.channel.assertQueue(queueName, {
 			exclusive: false,
 			durable: true,
-			arguments: {
-				'x-dead-letter-exchange': dlxName,
-			},
 		});
 
 		await this.channel.prefetch(1);
@@ -138,12 +135,7 @@ export class Queue {
 			Number(message.properties?.headers?.['x-event-people-retries'] ?? 0),
 		);
 
-		const event = new Event(
-			deliveryInfo.routingKey,
-			payload,
-			1.0,
-			retryCount,
-		);
+		const event = new Event(deliveryInfo.routingKey, payload, 1.0, retryCount);
 		const context = new RabbitContext(
 			this.channel,
 			message,
